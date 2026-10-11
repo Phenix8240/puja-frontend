@@ -4,5 +4,13 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-server: { proxy: { '/api': 'https://puja-backend-five.vercel.app/' } },})
-  
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://puja-backend-w2d6.onrender.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
+})
