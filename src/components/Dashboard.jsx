@@ -168,10 +168,12 @@ export default function Dashboard({
         <div className="space-y-8">
             <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="font-serif text-3xl font-semibold text-[#2A2622] sm:text-4xl">Your puja trail</h1>
-                    <p className="mt-1.5 max-w-xl text-[#6B645C]">
-                        See how many pandals you have covered and which ones are still waiting for you.
-                    </p>
+                    <h1 className="font-bengali text-3xl font-semibold text-[#2A2622] sm:text-4xl">
+    তোমার পুজো পরিক্রমা
+</h1>
+<p className="mt-1.5 max-w-xl text-[#6B645C]">
+    কতগুলো প্যান্ডেল ঘোরা হল, আর কোনগুলো এখনও বাকি, এক নজরে দেখে নাও।
+</p>
                 </div>
             </header>
 

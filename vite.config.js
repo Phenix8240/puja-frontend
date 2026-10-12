@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://puja-backend-w2d6.onrender.com',
+        target: 'https://puja-backend-89q5.vercel.app/',
         changeOrigin: true,
         secure: true,
       },

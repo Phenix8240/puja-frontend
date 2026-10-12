@@ -1,17 +1,18 @@
 /**
  * Sidebar.jsx
  *
- * Fixed sidebar on large screens; below `lg` it becomes a top bar with a slide-in drawer.
+ * Fixed navy sidebar on large screens; below `lg` it becomes a top bar with a slide-in drawer.
  * Counts are calculated from the `pandals` prop, so nothing here is hardcoded.
  *
  * Also exports VIEW_CONFIG, which describes how each list-style view behaves. App.jsx
  * reads it so the sidebar and the content area always agree on what a view means.
+ *
+ * Logo: put the icon at src/assets/logo.png (or change the import path below).
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
     CheckCircle2,
     Compass,
-    Flower2,
     Footprints,
     Heart,
     Landmark,
@@ -21,7 +22,7 @@ import {
     Train,
     X,
 } from 'lucide-react';
-import { ui } from './Pandalform';
+import logoUrl from '../assets/logo.png';
 
 /**
  * `locked` are filter values fixed by the view (merged over the user's filters).
@@ -69,23 +70,41 @@ export const VIEW_CONFIG = {
 /** Which filter controls a view hides because it already fixes them. */
 export const getLockedFilterKeys = (viewId) => Object.keys(VIEW_CONFIG[viewId]?.locked ?? {});
 
+/*
+ * Palette, taken from the logo
+ *   navy        #16325C   sidebar surface
+ *   deep navy   #0F2547   top bar, progress track, hover depth
+ *   orange      #F5822A   active marker, progress, primary action
+ *   mist        #C5D0E6   body text on navy
+ *   slate       #8C9BB8   section labels, idle icons
+ */
+const focusRing =
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#16325C]';
+
+const barIconBtn = `inline-flex h-10 w-10 items-center justify-center rounded-lg text-[#C5D0E6] transition-colors hover:bg-white/10 hover:text-white ${focusRing}`;
+
 function NavButton({ icon: Icon, label, count, active, onClick }) {
     return (
         <button
             type="button"
             onClick={onClick}
             aria-current={active ? 'page' : undefined}
-            className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${active ? 'bg-[#FDEEEA] text-[#B82D16]' : 'text-[#4A443D] hover:bg-[#F3EEE3] hover:text-[#2A2622]'
+            className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${focusRing} ${active
+                    ? 'bg-white/10 text-white'
+                    : 'text-[#C5D0E6] hover:bg-white/5 hover:text-white'
                 }`}
         >
-            {active && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-[#D9381E]" />}
+            {active && (
+                <span className="absolute inset-y-2 -left-3 w-1 rounded-r-full bg-[#F5822A]" aria-hidden="true" />
+            )}
             <Icon
-                className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-[#D9381E]' : 'text-[#8A8276] group-hover:text-[#4A443D]'}`}
+                className={`h-[18px] w-[18px] shrink-0 transition-colors ${active ? 'text-[#F5822A]' : 'text-[#8C9BB8] group-hover:text-white'
+                    }`}
             />
             <span className="flex-1 truncate">{label}</span>
             {typeof count === 'number' && (
                 <span
-                    className={`min-w-6 rounded-full px-2 py-0.5 text-center text-xs font-semibold tabular-nums ${active ? 'bg-[#D9381E] text-white' : 'bg-[#EFE9DB] text-[#6B645C]'
+                    className={`min-w-7 rounded-md px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums ${active ? 'bg-[#F5822A] text-[#0F2547]' : 'bg-[#0F2547] text-[#C5D0E6]'
                         }`}
                 >
                     {count}
@@ -95,18 +114,29 @@ function NavButton({ icon: Icon, label, count, active, onClick }) {
     );
 }
 
+function LogoMark({ size = 'lg' }) {
+    const box = size === 'lg' ? 'h-14 w-14 p-1.5' : 'h-10 w-10 p-1';
+    return (
+        <span className={`flex shrink-0 items-center justify-center rounded-xl shadow-sm ${box}`}>
+            <img src={logoUrl} alt="" className="h-full w-full object-contain" />
+        </span>
+    );
+}
+
 function Logo() {
     return (
         <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D9381E] text-white shadow-sm">
-                <Flower2 className="h-5 w-5" />
-            </span>
+            <LogoMark />
             <div className="leading-tight">
-                <p className="font-serif text-lg font-semibold text-[#2A2622]">PujoTrack Kolkata</p>
-                <p className="text-xs text-[#8A8276]">Your Durga Puja pandal planner</p>
+                <p className="font-serif text-lg font-semibold text-white">পুজোর পথে</p>
+                <p className="text-xs text-[#8C9BB8]">Your Durga Puja pandal planner</p>
             </div>
         </div>
     );
+}
+
+function SectionLabel({ children }) {
+    return <p className="mb-2 px-3 text-xs font-semibold text-[#8C9BB8]">{children}</p>;
 }
 
 /**
@@ -172,15 +202,13 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
     return (
         <>
             {/* Mobile and tablet top bar */}
-            <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-[#EBE4D5] bg-white/95 px-4 backdrop-blur lg:hidden">
+            <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-white/10 bg-[#16325C] px-4 lg:hidden">
                 <div className="flex items-center gap-2.5">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D9381E] text-white">
-                        <Flower2 className="h-4 w-4" />
-                    </span>
-                    <span className="font-serif text-base font-semibold text-[#2A2622]">PujoTrack Kolkata</span>
+                    <LogoMark size="sm" />
+                    <span className="font-serif text-base font-semibold text-white">PujoTrack Kolkata</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <button type="button" onClick={add} aria-label="Add new pandal" className={ui.iconBtn}>
+                    <button type="button" onClick={add} aria-label="Add new pandal" className={barIconBtn}>
                         <Plus className="h-5 w-5" />
                     </button>
                     <button
@@ -189,7 +217,7 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                         aria-label="Open navigation menu"
                         aria-expanded={open}
                         aria-controls="app-sidebar"
-                        className={ui.iconBtn}
+                        className={barIconBtn}
                     >
                         <Menu className="h-5 w-5" />
                     </button>
@@ -199,7 +227,7 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
             {/* Drawer backdrop */}
             {open && (
                 <div
-                    className="fixed inset-0 z-40 bg-[#2A2622]/50 lg:hidden"
+                    className="fixed inset-0 z-40 bg-[#0F2547]/60 backdrop-blur-[2px] lg:hidden"
                     onMouseDown={() => setOpen(false)}
                     aria-hidden="true"
                 />
@@ -208,16 +236,16 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
             <aside
                 id="app-sidebar"
                 aria-label="Main navigation"
-                className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#EBE4D5] bg-white transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none lg:visible lg:w-64 lg:translate-x-0 ${open ? 'visible translate-x-0 shadow-2xl' : 'invisible -translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#16325C] transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none lg:visible lg:w-64 lg:translate-x-0 ${open ? 'visible translate-x-0 shadow-2xl' : 'invisible -translate-x-full'
                     }`}
             >
-                <div className="flex items-center justify-between px-5 pb-4 pt-6">
+                <div className="flex items-center justify-between px-5 pb-5 pt-6">
                     <Logo />
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
                         aria-label="Close navigation menu"
-                        className={`${ui.iconBtn} -mr-2 lg:hidden`}
+                        className={`${barIconBtn} -mr-2 lg:hidden`}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -234,7 +262,7 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                     </div>
 
                     <div>
-                        <p className="mb-1.5 px-3 text-xs font-semibold text-[#8A8276]">Pandals</p>
+                        <SectionLabel>Pandals</SectionLabel>
                         <div className="space-y-1">
                             <NavButton
                                 icon={Landmark}
@@ -268,7 +296,7 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                     </div>
 
                     <div>
-                        <p className="mb-1.5 px-3 text-xs font-semibold text-[#8A8276]">Explore</p>
+                        <SectionLabel>Explore</SectionLabel>
                         <div className="space-y-1">
                             <NavButton
                                 icon={Compass}
@@ -288,13 +316,11 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                     </div>
                 </nav>
 
-                <div className="space-y-4 border-t border-[#EBE4D5] p-4">
-                    <div>
-                        <div className="mb-1.5 flex items-baseline justify-between text-xs text-[#6B645C]">
+                <div className="space-y-4 border-t border-white/10 p-4">
+                    <div className="rounded-xl bg-[#0F2547] p-3.5">
+                        <div className="mb-2 flex items-baseline justify-between text-xs text-[#C5D0E6]">
                             <span>Trail progress</span>
-                            <span className="font-semibold text-[#2A2622]">
-                                {counts.visited} of {counts.total} visited
-                            </span>
+                            <span className="font-semibold text-white">{percent}%</span>
                         </div>
                         <div
                             role="progressbar"
@@ -302,15 +328,22 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                             aria-valuemin={0}
                             aria-valuemax={100}
                             aria-valuenow={percent}
-                            className="h-1.5 overflow-hidden rounded-full bg-[#EFE9DB]"
+                            className="h-2 overflow-hidden rounded-full bg-white/10"
                         >
                             <div
-                                className="h-full rounded-full bg-[#D9381E] transition-[width] duration-500"
+                                className="h-full rounded-full bg-[#F5822A] transition-[width] duration-500 motion-reduce:transition-none"
                                 style={{ width: `${percent}%` }}
                             />
                         </div>
+                        <p className="mt-2 text-xs text-[#8C9BB8]">
+                            {counts.visited} of {counts.total} visited
+                        </p>
                     </div>
-                    <button type="button" onClick={add} className={`${ui.primaryBtn} w-full`}>
+                    <button
+                        type="button"
+                        onClick={add}
+                        className={`flex w-full items-center justify-center gap-2 rounded-lg bg-[#F5822A] px-4 py-2.5 text-sm font-semibold text-[#0F2547] transition-colors hover:bg-[#FF9440] active:bg-[#E0721D] ${focusRing}`}
+                    >
                         <Plus className="h-4 w-4" />
                         Add New Pandal
                     </button>
