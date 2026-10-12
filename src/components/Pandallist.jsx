@@ -3,6 +3,9 @@
  *
  * Responsive grid (or list) of pandal cards. It receives the already-filtered pandals
  * from App.jsx and can group them by region or metro station for the Explore views.
+ *
+ * Hover lift and image zoom only run on devices that really hover ([@media(hover:hover)] variant), so
+ * tapping a card on a phone no longer leaves it "zoomed".
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -33,6 +36,8 @@ import {
 import { NoResults, groupPandals } from './SearchFilters.jsx';
 
 const VIEW_MODE_KEY = 'pujotrack.listMode';
+const GRID = 'grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 2xl:grid-cols-4';
+const ring = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16325C]';
 
 function metroLine(pandal) {
     if (pandal.nearestMetro && pandal.metroDistance) {
@@ -62,7 +67,7 @@ function FavouriteButton({ pandal, onToggleFavourite, className = '' }) {
             aria-pressed={pandal.favourite}
             aria-label={pandal.favourite ? `Remove ${pandal.clubName} from favourites` : `Add ${pandal.clubName} to favourites`}
             title={pandal.favourite ? 'Remove from favourites' : 'Add to favourites'}
-            className={`flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm ring-1 ring-black/5 transition-all hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E] ${className}`}
+            className={`flex h-10 w-10 touch-manipulation items-center justify-center rounded-full bg-white/95 shadow-sm ring-1 ring-black/5 transition-transform active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E] sm:h-9 sm:w-9 [@media(hover:hover)]:hover:scale-105 ${className}`}
         >
             <Heart
                 className={`h-[18px] w-[18px] transition-colors ${pandal.favourite ? 'fill-[#D9381E] text-[#D9381E]' : 'text-[#6B645C]'
@@ -79,9 +84,9 @@ function CardActions({ pandal, onToggleVisited, onEdit, onRequestDelete }) {
                 type="button"
                 onClick={() => onToggleVisited(pandal.id)}
                 aria-pressed={pandal.visited}
-                className={`inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border px-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${pandal.visited
+                className={`inline-flex h-10 min-w-0 flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-2.5 text-sm font-semibold transition-colors sm:h-9 ${ring} ${pandal.visited
                     ? 'border-[#BBDCC6] bg-[#E4F1E8] text-[#255B3C] hover:bg-[#D6EADC]'
-                    : 'border-[#E2D9C6] bg-white text-[#2A2622] hover:border-[#CDBF9F] hover:bg-[#FBF8F1]'
+                    : 'border-[#D9D4C6] bg-white text-[#16325C] hover:border-[#B9C4DA] hover:bg-[#F4F6FA]'
                     }`}
             >
                 {pandal.visited ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <Circle className="h-4 w-4 shrink-0" />}
@@ -94,7 +99,7 @@ function CardActions({ pandal, onToggleVisited, onEdit, onRequestDelete }) {
                 rel="noopener noreferrer"
                 aria-label={`Get directions to ${pandal.clubName} in Google Maps (opens in a new tab)`}
                 title="Directions in Google Maps"
-                className={`${ui.iconBtn} border-[#E2D9C6] bg-white text-[#2A2622] hover:border-[#CDBF9F]`}
+                className={`${ui.iconBtn} !border-[#D9D4C6] bg-white !text-[#16325C]`}
             >
                 <Navigation className="h-4 w-4" />
             </a>
@@ -123,19 +128,21 @@ function CardActions({ pandal, onToggleVisited, onEdit, onRequestDelete }) {
 function PandalCard({ pandal, handlers }) {
     const { onSelect, onToggleFavourite } = handlers;
     return (
-        <article className={`${ui.card} group flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(42,38,34,0.10)]`}>
+        <article
+            className={`${ui.card} group flex flex-col overflow-hidden transition-[transform,box-shadow] duration-200 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-[0_10px_30px_rgba(15,37,71,0.12)]`}
+        >
             <div className="relative">
                 <button
                     type="button"
                     onClick={() => onSelect(pandal.id)}
                     aria-label={`Open details for ${pandal.clubName}`}
-                    className="block w-full overflow-hidden text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D9381E]"
+                    className="block w-full touch-manipulation overflow-hidden text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#16325C]"
                 >
                     <ImageWithFallback
                         src={pandal.pandalImage}
                         alt={`${pandal.clubName} pandal`}
                         kind="pandal"
-                        className="aspect-[16/10] w-full transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
+                        className={`aspect-[16/10] w-full transition-transform duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:scale-[1.03]`}
                     />
                 </button>
                 <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap gap-1.5">
@@ -153,13 +160,13 @@ function PandalCard({ pandal, handlers }) {
                 type="button"
                 onClick={() => onSelect(pandal.id)}
                 tabIndex={-1}
-                className={`block w-full px-4 pb-3 pt-4 text-left ${pandal.idolImage ? 'pr-20' : ''}`}
+                className={`block w-full touch-manipulation px-4 pb-3 pt-4 text-left ${pandal.idolImage ? 'pr-20' : ''}`}
             >
                 <h3 className="line-clamp-2 break-words font-serif text-lg font-semibold leading-snug text-[#2A2622]" title={pandal.clubName}>
                     {pandal.clubName}
                 </h3>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-[#6B645C]">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-[#9A7A2E]" />
+                    <MapPin className="h-3.5 w-3.5 shrink-0 text-[#F5822A]" />
                     <span className="truncate" title={pandal.address || pandal.locality}>
                         {pandal.locality || pandal.address}
                     </span>
@@ -172,7 +179,7 @@ function PandalCard({ pandal, handlers }) {
                     {pandal.isSample && <DemoBadge />}
                 </div>
                 <p className="flex items-start gap-2 text-sm text-[#4A443D]">
-                    <Train className="mt-0.5 h-4 w-4 shrink-0 text-[#8A8276]" />
+                    <Train className="mt-0.5 h-4 w-4 shrink-0 text-[#6B7894]" />
                     <span className="min-w-0 break-words">{metroLine(pandal)}</span>
                 </p>
                 {pandal.visited && pandal.visitDate && (
@@ -193,13 +200,15 @@ function PandalCard({ pandal, handlers }) {
 
 function PandalRow({ pandal, handlers }) {
     return (
-        <article className={`${ui.card} group flex flex-col overflow-hidden transition-shadow hover:shadow-[0_10px_30px_rgba(42,38,34,0.10)] sm:flex-row`}>
+        <article
+            className={`${ui.card} group flex flex-col overflow-hidden transition-shadow [@media(hover:hover)]:hover:shadow-[0_10px_30px_rgba(15,37,71,0.12)] sm:flex-row`}
+        >
             <div className="relative sm:w-52 sm:shrink-0 lg:w-60">
                 <button
                     type="button"
                     onClick={() => handlers.onSelect(pandal.id)}
                     aria-label={`Open details for ${pandal.clubName}`}
-                    className="block h-full w-full overflow-hidden text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D9381E]"
+                    className="block h-full w-full touch-manipulation overflow-hidden text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#16325C]"
                 >
                     <ImageWithFallback
                         src={pandal.pandalImage}
@@ -216,29 +225,29 @@ function PandalRow({ pandal, handlers }) {
             <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
                 <div className="flex items-start gap-3">
                     {pandal.idolImage && (
-                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-[#EBE4D5]">
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-[#E6E0D2]">
                             <ImageWithFallback src={pandal.idolImage} alt={`Maa Durga idol at ${pandal.clubName}`} kind="idol" compact className="h-full w-full" />
                         </div>
                     )}
-                    <button type="button" onClick={() => handlers.onSelect(pandal.id)} tabIndex={-1} className="min-w-0 flex-1 text-left">
+                    <button type="button" onClick={() => handlers.onSelect(pandal.id)} tabIndex={-1} className="min-w-0 flex-1 touch-manipulation text-left">
                         <h3 className="line-clamp-2 break-words font-serif text-lg font-semibold leading-snug text-[#2A2622]" title={pandal.clubName}>
                             {pandal.clubName}
                         </h3>
                         <p className="mt-0.5 flex items-center gap-1.5 text-sm text-[#6B645C]">
-                            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#9A7A2E]" />
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#F5822A]" />
                             <span className="truncate" title={pandal.address || pandal.locality}>
                                 {pandal.address || pandal.locality}
                             </span>
                         </p>
                     </button>
-                    <FavouriteButton pandal={pandal} onToggleFavourite={handlers.onToggleFavourite} className="shrink-0 !bg-[#FBF8F1]" />
+                    <FavouriteButton pandal={pandal} onToggleFavourite={handlers.onToggleFavourite} className="shrink-0 !bg-[#F4F6FA]" />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     <RegionBadge region={pandal.region} />
                     {pandal.isSample && <DemoBadge />}
                     <span className="flex min-w-0 items-center gap-1.5 text-sm text-[#4A443D]">
-                        <Train className="h-4 w-4 shrink-0 text-[#8A8276]" />
+                        <Train className="h-4 w-4 shrink-0 text-[#6B7894]" />
                         <span className="break-words">{metroLine(pandal)}</span>
                     </span>
                     {pandal.visited && pandal.visitDate && (
@@ -261,13 +270,13 @@ function PandalRow({ pandal, handlers }) {
 
 function SkeletonCard() {
     return (
-        <div className={`${ui.card} animate-pulse overflow-hidden`} aria-hidden="true">
-            <div className="aspect-[16/10] bg-[#EFE9DB]" />
+        <div className={`${ui.card} animate-pulse overflow-hidden motion-reduce:animate-none`} aria-hidden="true">
+            <div className="aspect-[16/10] bg-[#E9E5DA]" />
             <div className="space-y-3 p-4">
-                <div className="h-5 w-3/4 rounded bg-[#EFE9DB]" />
-                <div className="h-4 w-1/2 rounded bg-[#F3EEE3]" />
-                <div className="h-4 w-2/3 rounded bg-[#F3EEE3]" />
-                <div className="h-9 rounded-lg bg-[#F3EEE3]" />
+                <div className="h-5 w-3/4 rounded bg-[#E9E5DA]" />
+                <div className="h-4 w-1/2 rounded bg-[#F1EEE6]" />
+                <div className="h-4 w-2/3 rounded bg-[#F1EEE6]" />
+                <div className="h-10 rounded-lg bg-[#F1EEE6]" />
             </div>
         </div>
     );
@@ -275,15 +284,15 @@ function SkeletonCard() {
 
 function EmptyCollection({ onAddNew, onLoadSamples }) {
     return (
-        <div className={`${ui.card} flex flex-col items-center px-6 py-16 text-center`}>
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FDEEEA] text-[#D9381E]">
+        <div className={`${ui.card} flex flex-col items-center px-5 py-14 text-center sm:px-6 sm:py-16`}>
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF1E4] text-[#F5822A]">
                 <Landmark className="h-8 w-8" strokeWidth={1.5} />
             </span>
             <h3 className="mt-5 font-serif text-2xl font-semibold text-[#2A2622]">Your pandal list is empty</h3>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-[#6B645C]">
                 Add the first puja club you plan to visit, or load a few demo records to see how the app works.
             </p>
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-6 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <button type="button" onClick={onAddNew} className={ui.primaryBtn}>
                     <Plus className="h-4 w-4" />
                     Add a pandal
@@ -356,7 +365,7 @@ export default function PandalList({
 
     const renderItems = (items) =>
         mode === 'grid' ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className={GRID}>
                 {items.map((pandal) => (
                     <PandalCard key={pandal.id} pandal={pandal} handlers={handlers} />
                 ))}
@@ -372,7 +381,7 @@ export default function PandalList({
     let body;
     if (isLoading) {
         body = (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" role="status" aria-label="Loading pandals">
+            <div className={GRID} role="status" aria-label="Loading pandals">
                 {Array.from({ length: 6 }, (_, index) => (
                     <SkeletonCard key={index} />
                 ))}
@@ -386,22 +395,22 @@ export default function PandalList({
         body = renderItems(pandals);
     } else {
         body = (
-            <div className="space-y-10">
+            <div className="space-y-8 sm:space-y-10">
                 {groups.map((group) => (
                     <section key={group.key} aria-labelledby={`group-${group.key}`}>
-                        <div className="mb-4 flex items-center gap-3 border-b border-[#EBE4D5] pb-2.5">
+                        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#E6E0D2] pb-2.5">
                             {groupBy === 'region' ? (
-                                <span className={`h-3 w-3 rounded-full ${REGION_STYLES[group.label]?.bar || 'bg-[#3F3A34]'}`} />
+                                <span className={`h-3 w-3 shrink-0 rounded-full ${REGION_STYLES[group.label]?.bar || 'bg-[#3F3A34]'}`} />
                             ) : (
-                                <Train className="h-4 w-4 text-[#9A7A2E]" />
+                                <Train className="h-4 w-4 shrink-0 text-[#F5822A]" />
                             )}
-                            <h2 id={`group-${group.key}`} className="font-serif text-xl font-semibold text-[#2A2622]">
+                            <h2 id={`group-${group.key}`} className="min-w-0 break-words font-serif text-lg font-semibold text-[#2A2622] sm:text-xl">
                                 {group.label}
                             </h2>
-                            <span className="rounded-full bg-[#EFE9DB] px-2.5 py-0.5 text-xs font-semibold text-[#6B645C]">
+                            <span className="rounded-full bg-[#E7ECF5] px-2.5 py-0.5 text-xs font-semibold text-[#16325C]">
                                 {group.items.length} {group.items.length === 1 ? 'pandal' : 'pandals'}
                             </span>
-                            <span className="ml-auto text-xs text-[#8A8276]">
+                            <span className="ml-auto text-xs text-[#6B645C]">
                                 {group.items.filter((item) => item.visited).length} visited
                             </span>
                         </div>
@@ -416,7 +425,7 @@ export default function PandalList({
         <div>
             {!isLoading && totalCount > 0 && pandals.length > 0 && (
                 <div className="mb-4 flex justify-end">
-                    <div role="group" aria-label="Layout" className="inline-flex rounded-xl border border-[#E2D9C6] bg-white p-1 shadow-sm">
+                    <div role="group" aria-label="Layout" className="inline-flex rounded-xl border border-[#D9D4C6] bg-white p-1 shadow-sm">
                         {[
                             ['grid', LayoutGrid, 'Grid view'],
                             ['list', List, 'List view'],
@@ -428,7 +437,7 @@ export default function PandalList({
                                 aria-pressed={mode === value}
                                 aria-label={label}
                                 title={label}
-                                className={`flex h-8 w-9 items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${mode === value ? 'bg-[#2A2622] text-white' : 'text-[#6B645C] hover:bg-[#F3EEE3]'
+                                className={`flex h-9 w-11 touch-manipulation items-center justify-center rounded-lg transition-colors sm:h-8 sm:w-9 ${ring} ${mode === value ? 'bg-[#16325C] text-white' : 'text-[#6B645C] hover:bg-[#EEF1F7]'
                                     }`}
                             >
                                 <Icon className="h-4 w-4" />

@@ -1,13 +1,20 @@
 /**
  * Sidebar.jsx
  *
- * Fixed navy sidebar on large screens; below `lg` it becomes a top bar with a slide-in drawer.
+ * Responsive navigation for Pujor Pothe (পুজোর পথে).
+ *   Phones   (< sm)   compact top bar with logo + name, slide-in drawer (85% width, max 20rem)
+ *   Tablets  (sm–lg)  roomier top bar that also shows the tagline, same drawer
+ *   Desktop  (lg+)    fixed 16rem sidebar, no top bar
+ *
  * Counts are calculated from the `pandals` prop, so nothing here is hardcoded.
  *
  * Also exports VIEW_CONFIG, which describes how each list-style view behaves. App.jsx
  * reads it so the sidebar and the content area always agree on what a view means.
  *
- * Logo: put the icon at src/assets/logo.png (or change the import path below).
+ * Bengali font: add this once to index.html so the name renders well on every device.
+ *   <link rel="preconnect" href="https://fonts.googleapis.com" />
+ *   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+ *   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet" />
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -23,6 +30,10 @@ import {
     X,
 } from 'lucide-react';
 import logoUrl from '../assets/logo.png';
+
+/** App name, used everywhere so it only needs changing in one place. */
+export const APP_NAME = 'পুজোর পথে';
+export const APP_TAGLINE = 'Your Durga Puja pandal planner';
 
 /**
  * `locked` are filter values fixed by the view (merged over the user's filters).
@@ -73,7 +84,7 @@ export const getLockedFilterKeys = (viewId) => Object.keys(VIEW_CONFIG[viewId]?.
 /*
  * Palette, taken from the logo
  *   navy        #16325C   sidebar surface
- *   deep navy   #0F2547   top bar, progress track, hover depth
+ *   deep navy   #0F2547   progress card, badges
  *   orange      #F5822A   active marker, progress, primary action
  *   mist        #C5D0E6   body text on navy
  *   slate       #8C9BB8   section labels, idle icons
@@ -81,7 +92,11 @@ export const getLockedFilterKeys = (viewId) => Object.keys(VIEW_CONFIG[viewId]?.
 const focusRing =
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#16325C]';
 
-const barIconBtn = `inline-flex h-10 w-10 items-center justify-center rounded-lg text-[#C5D0E6] transition-colors hover:bg-white/10 hover:text-white ${focusRing}`;
+// 44px touch target on phones and tablets, tighter on desktop.
+const barIconBtn = `inline-flex h-11 w-11 items-center justify-center rounded-lg text-[#C5D0E6] transition-colors hover:bg-white/10 hover:text-white active:bg-white/15 lg:h-10 lg:w-10 ${focusRing}`;
+
+// Bengali-friendly serif with safe fallbacks. leading-snug keeps matras from clipping.
+const brandFont = "font-['Noto_Serif_Bengali','Hind_Siliguri',serif] font-semibold leading-snug";
 
 function NavButton({ icon: Icon, label, count, active, onClick }) {
     return (
@@ -89,9 +104,9 @@ function NavButton({ icon: Icon, label, count, active, onClick }) {
             type="button"
             onClick={onClick}
             aria-current={active ? 'page' : undefined}
-            className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${focusRing} ${active
+            className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium transition-colors lg:py-2.5 ${focusRing} ${active
                     ? 'bg-white/10 text-white'
-                    : 'text-[#C5D0E6] hover:bg-white/5 hover:text-white'
+                    : 'text-[#C5D0E6] hover:bg-white/5 hover:text-white active:bg-white/10'
                 }`}
         >
             {active && (
@@ -114,8 +129,9 @@ function NavButton({ icon: Icon, label, count, active, onClick }) {
     );
 }
 
+/** White tile keeps the navy part of the logo visible against the navy surface. */
 function LogoMark({ size = 'lg' }) {
-    const box = size === 'lg' ? 'h-14 w-14 p-1.5' : 'h-10 w-10 p-1';
+    const box = size === 'lg' ? 'h-14 w-14 p-1.5' : 'h-10 w-10 p-1 sm:h-11 sm:w-11';
     return (
         <span className={`flex shrink-0 items-center justify-center rounded-xl shadow-sm ${box}`}>
             <img src={logoUrl} alt="" className="h-full w-full object-contain" />
@@ -125,11 +141,11 @@ function LogoMark({ size = 'lg' }) {
 
 function Logo() {
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
             <LogoMark />
-            <div className="leading-tight">
-                <p className="font-serif text-lg font-semibold text-white">পুজোর পথে</p>
-                <p className="text-xs text-[#8C9BB8]">Your Durga Puja pandal planner</p>
+            <div className="min-w-0">
+                <p className={`truncate text-xl text-white ${brandFont}`}>{APP_NAME}</p>
+                <p className="text-xs leading-tight text-[#8C9BB8]">{APP_TAGLINE}</p>
             </div>
         </div>
     );
@@ -201,13 +217,16 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
 
     return (
         <>
-            {/* Mobile and tablet top bar */}
-            <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-white/10 bg-[#16325C] px-4 lg:hidden">
-                <div className="flex items-center gap-2.5">
+            {/* Phone and tablet top bar */}
+            <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-white/10 bg-[#16325C] px-3 sm:px-5 lg:hidden">
+                <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                     <LogoMark size="sm" />
-                    <span className="font-serif text-base font-semibold text-white">PujoTrack Kolkata</span>
+                    <div className="min-w-0">
+                        <p className={`truncate text-base text-white sm:text-lg ${brandFont}`}>{APP_NAME}</p>
+                        <p className="hidden text-xs leading-tight text-[#8C9BB8] sm:block">{APP_TAGLINE}</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
                     <button type="button" onClick={add} aria-label="Add new pandal" className={barIconBtn}>
                         <Plus className="h-5 w-5" />
                     </button>
@@ -236,22 +255,22 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
             <aside
                 id="app-sidebar"
                 aria-label="Main navigation"
-                className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#16325C] transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none lg:visible lg:w-64 lg:translate-x-0 ${open ? 'visible translate-x-0 shadow-2xl' : 'invisible -translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-[85vw] max-w-xs flex-col bg-[#16325C] transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none lg:visible lg:w-64 lg:max-w-none lg:translate-x-0 ${open ? 'visible translate-x-0 shadow-2xl' : 'invisible -translate-x-full'
                     }`}
             >
-                <div className="flex items-center justify-between px-5 pb-5 pt-6">
+                <div className="flex items-center justify-between gap-2 px-4 pb-4 pt-5 sm:px-5 sm:pt-6 lg:pb-5">
                     <Logo />
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
                         aria-label="Close navigation menu"
-                        className={`${barIconBtn} -mr-2 lg:hidden`}
+                        className={`${barIconBtn} -mr-1 shrink-0 lg:hidden`}
                     >
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
-                <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-2">
+                <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-2 lg:space-y-6">
                     <div className="space-y-1">
                         <NavButton
                             icon={LayoutDashboard}
@@ -316,7 +335,8 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                     </div>
                 </nav>
 
-                <div className="space-y-4 border-t border-white/10 p-4">
+                {/* Footer respects the phone home-indicator area */}
+                <div className="space-y-3 border-t border-white/10 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] lg:space-y-4">
                     <div className="rounded-xl bg-[#0F2547] p-3.5">
                         <div className="mb-2 flex items-baseline justify-between text-xs text-[#C5D0E6]">
                             <span>Trail progress</span>
@@ -342,7 +362,7 @@ export default function Sidebar({ activeView, onNavigate, onAddNew, pandals }) {
                     <button
                         type="button"
                         onClick={add}
-                        className={`flex w-full items-center justify-center gap-2 rounded-lg bg-[#F5822A] px-4 py-2.5 text-sm font-semibold text-[#0F2547] transition-colors hover:bg-[#FF9440] active:bg-[#E0721D] ${focusRing}`}
+                        className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#F5822A] px-4 py-2.5 text-sm font-semibold text-[#0F2547] transition-colors hover:bg-[#FF9440] active:bg-[#E0721D] ${focusRing}`}
                     >
                         <Plus className="h-4 w-4" />
                         Add New Pandal

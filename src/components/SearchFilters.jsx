@@ -7,6 +7,9 @@
  *
  * Also exports: DEFAULT_FILTERS, SORT_OPTIONS, applyFilters, getMetroOptions,
  * groupPandals, countActiveFilters and the <NoResults /> state.
+ *
+ * Mobile: the search box and selects use 16px text below `sm` so iOS Safari does not zoom
+ * the page when they are focused.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpDown, Heart, Search, SearchX, SlidersHorizontal, Train, X } from 'lucide-react';
@@ -129,8 +132,8 @@ export function countActiveFilters(filters, locked = []) {
 
 export function NoResults({ onClear }) {
     return (
-        <div className={`${ui.card} flex flex-col items-center px-6 py-14 text-center`}>
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F7EFD9] text-[#8A6A1C]">
+        <div className={`${ui.card} flex flex-col items-center px-5 py-12 text-center sm:px-6 sm:py-14`}>
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E7ECF5] text-[#16325C]">
                 <SearchX className="h-7 w-7" strokeWidth={1.6} />
             </span>
             <h3 className="mt-4 font-serif text-xl font-semibold text-[#2A2622]">No pandals match these filters</h3>
@@ -149,6 +152,8 @@ export function NoResults({ onClear }) {
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
+
+const ring = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16325C]';
 
 /**
  * Props
@@ -212,29 +217,30 @@ export default function SearchFilters({
     };
 
     const metroKnown = f.metro === 'all' || metroOptions.some((option) => option.name === f.metro);
-    const selectClass =
-        'w-full appearance-none rounded-xl border border-[#E2D9C6] bg-white py-2.5 pl-3.5 pr-9 text-sm text-[#2A2622] transition-colors hover:border-[#CDBF9F] focus:border-[#B58B2E] focus:outline-none focus:ring-2 focus:ring-[#B58B2E]/25';
 
     return (
         <section aria-label="Search and filters" className="space-y-3">
             {/* Search row */}
             <div className="flex flex-col gap-2.5 sm:flex-row">
                 <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9A7A2E]" />
+                    <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#16325C]/60" />
                     <input
                         type="search"
+                        inputMode="search"
+                        enterKeyHint="search"
+                        autoComplete="off"
                         value={draft}
                         onChange={(event) => setDraft(event.target.value)}
-                        placeholder="Search by club name, locality, address or metro station"
+                        placeholder="Search club, locality, address or metro"
                         aria-label="Search pandals"
-                        className="h-12 w-full rounded-2xl border border-[#E2D9C6] bg-white pl-12 pr-11 text-[15px] text-[#2A2622] shadow-sm transition-colors placeholder:text-[#A39B8D] hover:border-[#CDBF9F] focus:border-[#B58B2E] focus:outline-none focus:ring-2 focus:ring-[#B58B2E]/25 [&::-webkit-search-cancel-button]:hidden"
+                        className="h-12 w-full touch-manipulation rounded-2xl border border-[#D9D4C6] bg-white pl-12 pr-11 text-base text-[#2A2622] shadow-sm transition-colors placeholder:text-[#A39B8D] hover:border-[#B9C4DA] focus:border-[#16325C] focus:outline-none focus:ring-2 focus:ring-[#16325C]/20 sm:text-[15px] [&::-webkit-search-cancel-button]:hidden"
                     />
                     {draft && (
                         <button
                             type="button"
                             onClick={() => setDraft('')}
                             aria-label="Clear search"
-                            className="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#8A8276] transition-colors hover:bg-[#F3EEE3] hover:text-[#2A2622]"
+                            className={`absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 touch-manipulation items-center justify-center rounded-lg text-[#6B645C] transition-colors hover:bg-[#EEF1F7] hover:text-[#16325C] ${ring}`}
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -242,13 +248,13 @@ export default function SearchFilters({
                 </div>
 
                 <div className="flex gap-2.5">
-                    <div className="relative min-w-0 flex-1 sm:w-48 sm:flex-none">
-                        <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A8276]" />
+                    <div className="relative min-w-0 flex-1 sm:w-52 sm:flex-none">
+                        <ArrowUpDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B645C]" />
                         <select
                             value={f.sortBy}
                             onChange={(event) => set({ sortBy: event.target.value })}
                             aria-label="Sort pandals by"
-                            className={`${selectClass} h-12`}
+                            className={`${ui.select} h-12`}
                         >
                             {SORT_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -263,12 +269,12 @@ export default function SearchFilters({
                         onClick={() => setPanelOpen((open) => !open)}
                         aria-expanded={panelOpen}
                         aria-controls="filter-panel"
-                        className={`${ui.secondaryBtn} relative h-12 md:hidden`}
+                        className={`${ui.secondaryBtn} relative h-12 shrink-0 md:hidden`}
                     >
                         <SlidersHorizontal className="h-4 w-4" />
                         Filters
                         {activeCount > 0 && (
-                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#D9381E] px-1.5 text-xs font-bold text-white">
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#F5822A] px-1.5 text-xs font-bold text-[#0F2547]">
                                 {activeCount}
                             </span>
                         )}
@@ -279,7 +285,7 @@ export default function SearchFilters({
             {/* Filter panel */}
             <div
                 id="filter-panel"
-                className={`${panelOpen ? 'flex' : 'hidden'} flex-col gap-4 rounded-2xl border border-[#EBE4D5] bg-white p-4 shadow-sm md:flex`}
+                className={`${panelOpen ? 'flex' : 'hidden'} flex-col gap-5 rounded-2xl border border-[#E6E0D2] bg-white p-4 shadow-sm md:flex`}
             >
                 <div>
                     <p className="mb-2 text-sm font-medium text-[#2A2622]">Region</p>
@@ -292,14 +298,14 @@ export default function SearchFilters({
                                     type="button"
                                     aria-pressed={selected}
                                     onClick={() => toggleRegion(region)}
-                                    className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${selected
-                                            ? 'border-[#2A2622] bg-[#2A2622] text-white'
-                                            : 'border-[#E2D9C6] bg-white text-[#4A443D] hover:border-[#CDBF9F] hover:bg-[#FBF8F1]'
+                                    className={`inline-flex min-h-10 touch-manipulation items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${ring} ${selected
+                                            ? 'border-[#16325C] bg-[#16325C] text-white'
+                                            : 'border-[#D9D4C6] bg-white text-[#4A443D] hover:border-[#B9C4DA] hover:bg-[#F7F9FC]'
                                         }`}
                                 >
-                                    <span className={`h-2 w-2 rounded-full ${REGION_STYLES[region].bar}`} />
+                                    <span className={`h-2 w-2 rounded-full ${selected ? 'bg-white/90' : REGION_STYLES[region].bar}`} />
                                     {region}
-                                    <span className={`text-xs ${selected ? 'text-white/70' : 'text-[#8A8276]'}`}>
+                                    <span className={`text-xs ${selected ? 'text-white/70' : 'text-[#6B645C]'}`}>
                                         {regionCounts[region]}
                                     </span>
                                 </button>
@@ -314,12 +320,12 @@ export default function SearchFilters({
                             Metro station
                         </label>
                         <div className="relative">
-                            <Train className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A8276]" />
+                            <Train className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B645C]" />
                             <select
                                 id="metro-filter"
                                 value={f.metro}
                                 onChange={(event) => set({ metro: event.target.value })}
-                                className={selectClass}
+                                className={`${ui.select} h-11`}
                             >
                                 <option value="all">All stations</option>
                                 {!metroKnown && <option value={f.metro}>{f.metro}</option>}
@@ -340,7 +346,7 @@ export default function SearchFilters({
                             <div
                                 role="radiogroup"
                                 aria-labelledby="status-label"
-                                className="inline-flex rounded-xl border border-[#E2D9C6] bg-[#FBF8F1] p-1"
+                                className="flex w-full rounded-xl border border-[#D9D4C6] bg-[#F4F2EC] p-1 sm:inline-flex sm:w-auto"
                             >
                                 {[
                                     ['all', 'All'],
@@ -353,7 +359,7 @@ export default function SearchFilters({
                                         role="radio"
                                         aria-checked={f.status === value}
                                         onClick={() => set({ status: value })}
-                                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${f.status === value ? 'bg-white text-[#2A2622] shadow-sm' : 'text-[#6B645C] hover:text-[#2A2622]'
+                                        className={`min-h-9 flex-1 touch-manipulation whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none ${ring} ${f.status === value ? 'bg-white text-[#16325C] shadow-sm' : 'text-[#6B645C] hover:text-[#2A2622]'
                                             }`}
                                     >
                                         {label}
@@ -368,9 +374,9 @@ export default function SearchFilters({
                             type="button"
                             aria-pressed={f.favouritesOnly}
                             onClick={() => set({ favouritesOnly: !f.favouritesOnly })}
-                            className={`inline-flex h-[42px] items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${f.favouritesOnly
+                            className={`inline-flex h-11 w-full touch-manipulation items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors sm:col-span-2 lg:col-span-1 lg:w-auto ${ring} ${f.favouritesOnly
                                     ? 'border-[#D9381E] bg-[#FDEEEA] text-[#B82D16]'
-                                    : 'border-[#E2D9C6] bg-white text-[#4A443D] hover:border-[#CDBF9F]'
+                                    : 'border-[#D9D4C6] bg-white text-[#4A443D] hover:border-[#B9C4DA]'
                                 }`}
                         >
                             <Heart className={`h-4 w-4 ${f.favouritesOnly ? 'fill-current' : ''}`} />
@@ -381,7 +387,7 @@ export default function SearchFilters({
             </div>
 
             {/* Result count */}
-            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
                 <p aria-live="polite" className="text-sm text-[#6B645C]">
                     {resultCount === 0
                         ? 'No pandals found'
@@ -392,7 +398,7 @@ export default function SearchFilters({
                     <button
                         type="button"
                         onClick={clearAll}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-[#B82D16] transition-colors hover:bg-[#FDEEEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E]"
+                        className="inline-flex min-h-9 touch-manipulation items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold text-[#B8530A] transition-colors hover:bg-[#FFF1E4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A]"
                     >
                         <X className="h-3.5 w-3.5" />
                         Clear all filters

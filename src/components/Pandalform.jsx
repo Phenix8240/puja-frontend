@@ -1,8 +1,8 @@
 /**
- * PandalForm.jsx
+ * Pandalform.jsx
  *
  * Besides the add/edit drawer (default export), this file is the single home for
- * everything the other five components share, so business logic is never duplicated:
+ * everything the other components share, so business logic is never duplicated:
  *
  *   - Data model:      REGIONS, createPandal, normalizePandal, createSamplePandals
  *   - Data layer:      usePandals() hook (localStorage today, swap for an API later)
@@ -11,8 +11,11 @@
  *   - UI primitives:   ui (class tokens), ConfirmDialog, ImageWithFallback, RegionBadge,
  *                      StatusBadge
  *
- * If you prefer, you can move the non-form exports into their own files later; the
- * other components only import them by name.
+ * Mobile notes
+ *   - Every text field uses text-base (16px) below `sm`. iOS Safari zooms the page when a
+ *     smaller field is focused, which was the "everything zooms" bug.
+ *   - Hover-only motion uses the [@media(hover:hover)] variant so touch screens never get a stuck hover.
+ *   - Buttons use touch-manipulation to disable double-tap zoom.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -34,22 +37,27 @@ import {
 
 export const REGIONS = ['North Kolkata', 'South Kolkata', 'East Kolkata', 'West Kolkata'];
 
+/*
+ * Palette (from the logo)
+ *   navy #16325C   deep navy #0F2547   orange #F5822A   dark orange (text) #B8530A
+ *   ink #2A2622    muted #6B645C       line #E6E0D2      cream #FAF6EE
+ */
 export const REGION_STYLES = {
   'North Kolkata': {
-    badge: 'bg-[#FDEEEA] text-[#B82D16] ring-[#F4C7BC]',
-    bar: 'bg-[#D9381E]',
+    badge: 'bg-[#FFF1E4] text-[#A84A07] ring-[#F8D2AE]',
+    bar: 'bg-[#F5822A]',
   },
   'South Kolkata': {
-    badge: 'bg-[#F7EFD9] text-[#8A6A1C] ring-[#E8D6A5]',
-    bar: 'bg-[#B58B2E]',
+    badge: 'bg-[#E7ECF5] text-[#16325C] ring-[#C3CFE6]',
+    bar: 'bg-[#16325C]',
   },
   'East Kolkata': {
-    badge: 'bg-[#ECEAE6] text-[#3F3A34] ring-[#D5D0C7]',
-    bar: 'bg-[#3F3A34]',
+    badge: 'bg-[#E3F3EF] text-[#1F6355] ring-[#BADFD6]',
+    bar: 'bg-[#2E8B7A]',
   },
   'West Kolkata': {
-    badge: 'bg-[#E6EFF1] text-[#2F5D6B] ring-[#C3D8DD]',
-    bar: 'bg-[#3F7886]',
+    badge: 'bg-[#F7EFD9] text-[#8A6A1C] ring-[#E8D6A5]',
+    bar: 'bg-[#B58B2E]',
   },
 };
 
@@ -62,18 +70,26 @@ export const IMAGE_RULES = {
   quality: 0.78, // JPEG quality after resizing
 };
 
+/**
+ * Hover-only effects (card lift, image zoom) must be written with the full variant, for
+ * example `[@media(hover:hover)]:hover:-translate-y-0.5`, so they only run on devices that
+ * really hover. On touch screens :hover sticks after a tap, which made cards look zoomed.
+ * Write the class out in full: Tailwind cannot see classes built from template strings.
+ */
+
+const RING = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16325C] focus-visible:ring-offset-2';
+
 /** Shared Tailwind class tokens so every component looks consistent. */
 export const ui = {
   card:
-    'rounded-2xl border border-[#EBE4D5] bg-white shadow-[0_1px_2px_rgba(42,38,34,0.04),0_6px_20px_rgba(42,38,34,0.04)]',
-  primaryBtn:
-    'inline-flex items-center justify-center gap-2 rounded-xl bg-[#D9381E] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#B82D16] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
-  secondaryBtn:
-    'inline-flex items-center justify-center gap-2 rounded-xl border border-[#E2D9C6] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A2622] shadow-sm transition-colors hover:border-[#CDBF9F] hover:bg-[#FBF8F1] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
-  dangerBtn:
-    'inline-flex items-center justify-center gap-2 rounded-xl bg-[#B82D16] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#9A2412] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B82D16] focus-visible:ring-offset-2 disabled:opacity-60',
-  iconBtn:
-    'inline-flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-[#6B645C] transition-colors hover:bg-[#F3EEE3] hover:text-[#2A2622] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E]',
+    'rounded-2xl border border-[#E6E0D2] bg-white shadow-[0_1px_2px_rgba(15,37,71,0.04),0_6px_20px_rgba(15,37,71,0.05)]',
+  primaryBtn: `inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[#F5822A] px-4 py-2.5 text-sm font-semibold text-[#0F2547] shadow-sm transition-colors hover:bg-[#FF9440] active:bg-[#E0721D] ${RING} disabled:cursor-not-allowed disabled:opacity-60`,
+  secondaryBtn: `inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-xl border border-[#D9D4C6] bg-white px-4 py-2.5 text-sm font-semibold text-[#16325C] shadow-sm transition-colors hover:border-[#B9C4DA] hover:bg-[#F4F6FA] active:bg-[#EAEEF6] ${RING} disabled:cursor-not-allowed disabled:opacity-60`,
+  dangerBtn: `inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[#B82D16] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#9A2412] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B82D16] focus-visible:ring-offset-2 disabled:opacity-60`,
+  iconBtn: `inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-[#5A6478] transition-colors hover:bg-[#EEF1F7] hover:text-[#16325C] active:bg-[#E3E8F2] sm:h-9 sm:w-9 ${RING}`,
+  /** Text fields and selects: 16px on phones (prevents iOS zoom), 14px from sm up. */
+  select:
+    'w-full touch-manipulation appearance-none rounded-xl border border-[#D9D4C6] bg-white py-2.5 pl-3.5 pr-10 text-base text-[#2A2622] transition-colors hover:border-[#B9C4DA] focus:border-[#16325C] focus:outline-none focus:ring-2 focus:ring-[#16325C]/20 sm:text-sm',
   muted: 'text-[#6B645C]',
 };
 
@@ -624,7 +640,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-[#2A2622]/55 p-4 sm:items-center"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-[#0F2547]/60 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCancel();
       }}
@@ -634,12 +650,12 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="confirm-title"
         aria-describedby="confirm-message"
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
       >
         <div className="flex items-start gap-4">
           <span
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-              tone === 'danger' ? 'bg-[#FDEEEA] text-[#B82D16]' : 'bg-[#F7EFD9] text-[#8A6A1C]'
+              tone === 'danger' ? 'bg-[#FDEEEA] text-[#B82D16]' : 'bg-[#FFF1E4] text-[#B8530A]'
             }`}
           >
             {tone === 'danger' ? <Trash2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
@@ -680,6 +696,7 @@ export function ImageWithFallback({ src, alt, kind = 'pandal', className = '', c
         src={src}
         alt={alt}
         loading="lazy"
+        draggable={false}
         onError={() => setFailed(true)}
         className={`object-cover ${className}`}
       />
@@ -691,11 +708,11 @@ export function ImageWithFallback({ src, alt, kind = 'pandal', className = '', c
     <div
       role="img"
       aria-label={kind === 'idol' ? 'No Maa Durga idol photo yet' : 'No pandal photo yet'}
-      className={`flex flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-[#F8F1E0] via-[#F4EAD2] to-[#EBDDB8] text-[#9A7A2E] ${className}`}
+      className={`flex flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-[#F1F4FA] via-[#E7ECF5] to-[#DCE4F1] text-[#5C6F94] ${className}`}
     >
       <Icon className={compact ? 'h-5 w-5' : 'h-8 w-8'} strokeWidth={1.5} />
       {!compact && (
-        <span className="px-2 text-center text-xs font-medium text-[#8A6A1C]/80">
+        <span className="px-2 text-center text-xs font-medium text-[#4A5E85]">
           {kind === 'idol' ? 'No idol photo yet' : 'No pandal photo yet'}
         </span>
       )}
@@ -724,7 +741,7 @@ export function StatusBadge({ visited, className = '' }) {
     </span>
   ) : (
     <span
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-[#6B645C] ring-1 ring-inset ring-[#DDD5C3] ${className}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/95 px-2.5 py-0.5 text-xs font-semibold text-[#6B645C] ring-1 ring-inset ring-[#DDD5C3] ${className}`}
     >
       Not visited
     </span>
@@ -735,11 +752,12 @@ export function StatusBadge({ visited, className = '' }) {
 /* 8. The form                                                                */
 /* ========================================================================== */
 
+// text-base on phones stops iOS Safari from zooming into the field on focus.
 const inputClass = (hasError) =>
-  `block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-[#2A2622] placeholder:text-[#A39B8D] transition-colors focus:outline-none focus:ring-2 ${
+  `block w-full touch-manipulation rounded-xl border bg-white px-3.5 py-2.5 text-base text-[#2A2622] placeholder:text-[#A39B8D] transition-colors focus:outline-none focus:ring-2 sm:text-sm ${
     hasError
       ? 'border-[#D9381E] focus:border-[#D9381E] focus:ring-[#D9381E]/25'
-      : 'border-[#E2D9C6] hover:border-[#CDBF9F] focus:border-[#B58B2E] focus:ring-[#B58B2E]/25'
+      : 'border-[#D9D4C6] hover:border-[#B9C4DA] focus:border-[#16325C] focus:ring-[#16325C]/20'
   }`;
 
 function Field({ id, label, required, hint, error, children }) {
@@ -760,7 +778,7 @@ function Field({ id, label, required, hint, error, children }) {
           {error}
         </p>
       ) : (
-        hint && <p className="mt-1.5 text-xs text-[#8A8276]">{hint}</p>
+        hint && <p className="mt-1.5 text-xs text-[#6B645C]">{hint}</p>
       )}
     </div>
   );
@@ -768,7 +786,7 @@ function Field({ id, label, required, hint, error, children }) {
 
 function Section({ title, description, children }) {
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 rounded-2xl border border-[#E6E0D2] bg-white p-4 sm:p-5">
       <div>
         <h3 className="font-serif text-lg font-semibold text-[#2A2622]">{title}</h3>
         {description && <p className="mt-0.5 text-sm text-[#6B645C]">{description}</p>}
@@ -785,26 +803,26 @@ function Toggle({ checked, onChange, label, description, icon: Icon, activeClass
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center gap-3 rounded-xl border border-[#E2D9C6] bg-white p-3 text-left transition-colors hover:border-[#CDBF9F] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E]"
+      className={`flex min-h-14 w-full touch-manipulation items-center gap-3 rounded-xl border border-[#D9D4C6] bg-white p-3 text-left transition-colors hover:border-[#B9C4DA] ${RING}`}
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
-          checked ? activeClass : 'bg-[#F3EEE3] text-[#8A8276]'
+          checked ? activeClass : 'bg-[#F1EEE6] text-[#8A8276]'
         }`}
       >
         <Icon className="h-4 w-4" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-[#2A2622]">{label}</span>
-        <span className="block text-xs text-[#8A8276]">{description}</span>
+        <span className="block text-xs text-[#6B645C]">{description}</span>
       </span>
       <span
         className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          checked ? 'bg-[#D9381E]' : 'bg-[#D9D2C3]'
+          checked ? 'bg-[#16325C]' : 'bg-[#D3CEC0]'
         }`}
       >
         <span
-          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform motion-reduce:transition-none ${
             checked ? 'translate-x-5' : 'translate-x-0'
           }`}
         />
@@ -838,12 +856,12 @@ function ImageField({ id, label, hint, kind, value, busy, error, onSelect, onRem
       />
 
       {value ? (
-        <div className="overflow-hidden rounded-xl border border-[#E2D9C6] bg-white">
+        <div className="overflow-hidden rounded-xl border border-[#D9D4C6] bg-white">
           <div className="relative">
             <ImageWithFallback src={value} alt={`${label} preview`} kind={kind} className="aspect-[4/3] w-full" />
             {busy && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/70">
-                <Loader2 className="h-6 w-6 animate-spin text-[#D9381E]" />
+                <Loader2 className="h-6 w-6 animate-spin text-[#F5822A]" />
               </div>
             )}
           </div>
@@ -852,7 +870,7 @@ function ImageField({ id, label, hint, kind, value, busy, error, onSelect, onRem
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={busy}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[#2A2622] transition-colors hover:bg-[#F3EEE3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] disabled:opacity-50"
+              className={`inline-flex min-h-10 flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[#16325C] transition-colors hover:bg-[#EEF1F7] ${RING} disabled:opacity-50`}
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Replace
@@ -861,7 +879,7 @@ function ImageField({ id, label, hint, kind, value, busy, error, onSelect, onRem
               type="button"
               onClick={onRemove}
               disabled={busy}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[#B82D16] transition-colors hover:bg-[#FDEEEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E] disabled:opacity-50"
+              className="inline-flex min-h-10 flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[#B82D16] transition-colors hover:bg-[#FDEEEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E] disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Remove
@@ -883,19 +901,19 @@ function ImageField({ id, label, hint, kind, value, busy, error, onSelect, onRem
             pick(event.dataTransfer.files);
           }}
           disabled={busy}
-          className={`flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${
+          className={`flex aspect-[16/9] w-full touch-manipulation flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 text-center transition-colors sm:aspect-[4/3] ${RING} ${
             dragging
-              ? 'border-[#D9381E] bg-[#FDEEEA]'
-              : 'border-[#DCCFB0] bg-[#FBF8F1] hover:border-[#B58B2E] hover:bg-[#F8F1E0]'
+              ? 'border-[#F5822A] bg-[#FFF1E4]'
+              : 'border-[#C9D3E6] bg-[#F7F9FC] hover:border-[#16325C] hover:bg-[#EEF2F9]'
           }`}
         >
           {busy ? (
-            <Loader2 className="h-6 w-6 animate-spin text-[#D9381E]" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#F5822A]" />
           ) : (
-            <ImagePlus className="h-6 w-6 text-[#9A7A2E]" strokeWidth={1.6} />
+            <ImagePlus className="h-6 w-6 text-[#16325C]" strokeWidth={1.6} />
           )}
           <span className="text-sm font-medium text-[#2A2622]">{busy ? 'Preparing image…' : 'Add a photo'}</span>
-          <span className="text-xs text-[#8A8276]">{hint}</span>
+          <span className="text-xs text-[#6B645C]">{hint}</span>
         </button>
       )}
 
@@ -1039,9 +1057,19 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
     const frame = requestAnimationFrame(() => setShown(true));
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    // Focus the first field only with a mouse. On phones, auto-focus opens the keyboard
+    // immediately and the page jumps, which feels like an unwanted zoom.
+    const timer = setTimeout(() => {
+      if (window.matchMedia?.('(pointer: fine)').matches) {
+        document.getElementById('field-clubName')?.focus();
+      }
+    }, 320);
+
     return () => {
       mounted.current = false;
       cancelAnimationFrame(frame);
+      clearTimeout(timer);
       document.body.style.overflow = previousOverflow;
     };
   }, []);
@@ -1158,7 +1186,7 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[60]">
       <div
-        className={`absolute inset-0 bg-[#2A2622]/50 transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-[#0F2547]/55 transition-opacity duration-300 ${
           shown ? 'opacity-100' : 'opacity-0'
         }`}
         onMouseDown={requestClose}
@@ -1169,13 +1197,13 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="pandal-form-title"
-        className={`absolute inset-y-0 right-0 flex w-full max-w-2xl flex-col bg-[#FAF6EE] shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${
+        className={`absolute inset-y-0 right-0 flex h-dvh w-full max-w-2xl flex-col bg-[#FAF6EE] shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${
           shown ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-[#EBE4D5] bg-white px-5 py-4 sm:px-7">
+        <header className="flex items-start justify-between gap-3 border-b border-[#E6E0D2] bg-white px-4 py-3.5 sm:px-7 sm:py-4">
           <div className="min-w-0">
-            <h2 id="pandal-form-title" className="font-serif text-2xl font-semibold text-[#2A2622]">
+            <h2 id="pandal-form-title" className="font-serif text-xl font-semibold text-[#2A2622] sm:text-2xl">
               {isEdit ? 'Edit puja club' : 'Add a puja club'}
             </h2>
             <p className="mt-0.5 text-sm text-[#6B645C]">
@@ -1184,13 +1212,13 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                 : 'Fields marked with * are required. You can add the rest later.'}
             </p>
           </div>
-          <button type="button" onClick={requestClose} aria-label="Close form" className={ui.iconBtn}>
+          <button type="button" onClick={requestClose} aria-label="Close form" className={`${ui.iconBtn} -mr-1 h-11 w-11 sm:mr-0 sm:h-9 sm:w-9`}>
             <X className="h-5 w-5" />
           </button>
         </header>
 
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-8 overflow-y-auto px-5 py-6 sm:px-7">
+          <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-7 sm:py-6">
             {(errorCount > 0 || submitError) && (
               <div
                 role="alert"
@@ -1215,7 +1243,6 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                 <input
                   id="field-clubName"
                   type="text"
-                  autoFocus
                   value={values.clubName}
                   onChange={(event) => update('clubName', event.target.value)}
                   aria-invalid={Boolean(errors.clubName)}
@@ -1257,10 +1284,10 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                           role="radio"
                           aria-checked={selected}
                           onClick={() => update('region', region)}
-                          className={`rounded-lg border px-2 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E] ${
+                          className={`min-h-11 touch-manipulation rounded-lg border px-2 py-2 text-sm font-medium transition-colors ${RING} ${
                             selected
-                              ? 'border-[#D9381E] bg-[#FDEEEA] text-[#B82D16]'
-                              : 'border-[#E2D9C6] bg-white text-[#4A443D] hover:border-[#CDBF9F]'
+                              ? 'border-[#F5822A] bg-[#FFF1E4] text-[#A84A07]'
+                              : 'border-[#D9D4C6] bg-white text-[#4A443D] hover:border-[#B9C4DA]'
                           }`}
                         >
                           {region.replace(' Kolkata', '')}
@@ -1325,7 +1352,7 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                 </Field>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <Field id="field-latitude" label="Latitude" error={errors.latitude}>
                   <input
                     id="field-latitude"
@@ -1352,12 +1379,12 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                 </Field>
               </div>
               {coordinatesLookOff ? (
-                <p className="-mt-2 text-xs font-medium text-[#8A6A1C]">
+                <p className="-mt-2 text-xs font-medium text-[#B8530A]">
                   These coordinates are outside the Kolkata area. Check that latitude and longitude are not
                   swapped.
                 </p>
               ) : (
-                <p className="-mt-2 text-xs text-[#8A8276]">
+                <p className="-mt-2 text-xs text-[#6B645C]">
                   Optional. In Google Maps, right-click the pandal and click the coordinates to copy them. When
                   present, directions use them.
                 </p>
@@ -1405,7 +1432,7 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                 <ImageField
                   id="field-pandalImage"
                   label="Pandal photo"
-                  hint="Click or drop an image"
+                  hint="Tap or drop an image"
                   kind="pandal"
                   value={values.pandalImage}
                   busy={imageState.pandalImage.busy}
@@ -1416,7 +1443,7 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
                 <ImageField
                   id="field-idolImage"
                   label="Maa Durga idol photo"
-                  hint="Click or drop an image"
+                  hint="Tap or drop an image"
                   kind="idol"
                   value={values.idolImage}
                   busy={imageState.idolImage.busy}
@@ -1462,7 +1489,7 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
             </Section>
           </div>
 
-          <footer className="flex flex-col-reverse gap-2 border-t border-[#EBE4D5] bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
+          <footer className="flex flex-col-reverse gap-2 border-t border-[#E6E0D2] bg-white px-4 pt-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:px-7 sm:py-4">
             <button type="button" onClick={requestClose} disabled={saving} className={ui.secondaryBtn}>
               Cancel
             </button>

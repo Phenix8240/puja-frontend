@@ -3,6 +3,9 @@
  *
  * Overview of the whole collection. Every number is calculated from the `pandals`
  * prop on each render, so it updates the moment a record is added, edited or deleted.
+ *
+ * Needs the Noto Serif Bengali and Hind Siliguri fonts (the link is in index.html).
+ * Emojis are decorative, so they sit in <Emoji> and are hidden from screen readers.
  */
 import { useMemo } from 'react';
 import {
@@ -24,22 +27,44 @@ import {
     ui,
 } from './Pandalform.jsx';
 
-function StatCard({ icon: Icon, label, value, tone, onClick, loading }) {
+const ring = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16325C]';
+const linkBtn =
+    'rounded-lg px-2.5 py-1.5 text-sm font-semibold text-[#B8530A] transition-colors hover:bg-[#FFF1E4] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A]';
+
+/** Decorative emoji, ignored by screen readers. */
+function Emoji({ children, className = '' }) {
+    return (
+        <span aria-hidden="true" className={className}>
+            {children}
+        </span>
+    );
+}
+
+const HEADER_CHIPS = [
+    ['👣', 'ঘোরার হিসাব'],
+    ['🚇', 'কাছের মেট্রো স্টেশন'],
+    ['📸', 'নিজের তোলা ছবি'],
+];
+
+function StatCard({ icon: Icon, label, emoji, value, tone, onClick, loading }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className={`${ui.card} group flex items-center gap-4 p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(42,38,34,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E]`}
+            className={`${ui.card} flex touch-manipulation items-center gap-3 p-4 text-left transition-[transform,box-shadow] [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-[0_10px_30px_rgba(15,37,71,0.12)] sm:gap-4 sm:p-5 ${ring}`}
         >
-            <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${tone}`}>
-                <Icon className="h-6 w-6" strokeWidth={1.8} />
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12 ${tone}`}>
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </span>
             <span className="min-w-0">
-                <span className="block text-sm text-[#6B645C]">{label}</span>
+                <span className="block text-xs leading-tight text-[#6B645C] sm:text-sm">
+                    <Emoji>{emoji} </Emoji>
+                    {label}
+                </span>
                 {loading ? (
-                    <span className="mt-1 block h-8 w-12 animate-pulse rounded bg-[#EFE9DB]" />
+                    <span className="mt-1 block h-8 w-12 animate-pulse rounded bg-[#E9E5DA] motion-reduce:animate-none" />
                 ) : (
-                    <span className="block font-serif text-3xl font-semibold tabular-nums text-[#2A2622]">{value}</span>
+                    <span className="block font-serif text-2xl font-semibold tabular-nums text-[#16325C] sm:text-3xl">{value}</span>
                 )}
             </span>
         </button>
@@ -52,7 +77,7 @@ function MiniRow({ pandal, meta, actionLabel, onAction, onSelect }) {
             <button
                 type="button"
                 onClick={() => onSelect(pandal.id)}
-                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E]"
+                className={`flex min-h-12 min-w-0 flex-1 touch-manipulation items-center gap-3 rounded-lg text-left ${ring}`}
             >
                 <ImageWithFallback
                     src={pandal.pandalImage}
@@ -73,7 +98,7 @@ function MiniRow({ pandal, meta, actionLabel, onAction, onSelect }) {
                 <button
                     type="button"
                     onClick={() => onAction(pandal.id)}
-                    className="shrink-0 rounded-lg border border-[#E2D9C6] bg-white px-3 py-1.5 text-xs font-semibold text-[#2A2622] transition-colors hover:border-[#CDBF9F] hover:bg-[#FBF8F1] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E]"
+                    className={`min-h-10 shrink-0 touch-manipulation rounded-lg border border-[#D9D4C6] bg-white px-3 py-1.5 text-xs font-semibold text-[#16325C] transition-colors hover:border-[#B9C4DA] hover:bg-[#F4F6FA] ${ring}`}
                 >
                     {actionLabel}
                 </button>
@@ -82,15 +107,18 @@ function MiniRow({ pandal, meta, actionLabel, onAction, onSelect }) {
     );
 }
 
-function ListCard({ title, description, emptyText, actionText, onEmptyAction, children, hasItems, footer }) {
+function ListCard({ title, emoji, description, emptyText, actionText, onEmptyAction, children, hasItems, footer }) {
     return (
-        <section className={`${ui.card} flex flex-col p-5`}>
-            <h2 className="font-serif text-xl font-semibold text-[#2A2622]">{title}</h2>
+        <section className={`${ui.card} flex min-w-0 flex-col p-4 sm:p-5`}>
+            <h2 className="font-serif text-xl font-semibold text-[#2A2622]">
+                <Emoji>{emoji} </Emoji>
+                {title}
+            </h2>
             <p className="mt-0.5 text-sm text-[#6B645C]">{description}</p>
             {hasItems ? (
                 <ul className="mt-2 divide-y divide-[#F0EADB]">{children}</ul>
             ) : (
-                <div className="mt-4 flex flex-1 flex-col items-start gap-3 rounded-xl bg-[#FBF8F1] p-4">
+                <div className="mt-4 flex flex-1 flex-col items-start gap-3 rounded-xl bg-[#F7F9FC] p-4">
                     <p className="text-sm text-[#6B645C]">{emptyText}</p>
                     {actionText && (
                         <button type="button" onClick={onEmptyAction} className={ui.secondaryBtn}>
@@ -165,16 +193,35 @@ export default function Dashboard({
     const hasDemo = pandals.some((pandal) => pandal.isSample);
 
     return (
-        <div className="space-y-8">
-            <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="font-bengali text-3xl font-semibold text-[#2A2622] sm:text-4xl">
-    তোমার পুজো পরিক্রমা
-</h1>
-<p className="mt-1.5 max-w-xl text-[#6B645C]">
-    কতগুলো প্যান্ডেল ঘোরা হল, আর কোনগুলো এখনও বাকি, এক নজরে দেখে নাও।
-</p>
-                </div>
+        <div className="space-y-6 sm:space-y-8">
+            {/* Banner */}
+            <header className="relative overflow-hidden rounded-2xl bg-[#16325C] px-5 py-6 text-white sm:px-8 sm:py-8">
+                <span className="absolute inset-y-0 left-0 w-1.5 bg-[#F5822A]" aria-hidden="true" />
+
+                <h1 className="font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-2xl font-semibold leading-snug sm:text-3xl lg:text-4xl">
+                    <Emoji>🪔 </Emoji>
+                    তোমার পুজো পরিক্রমা
+                </h1>
+
+                <p className="mt-2 max-w-2xl font-['Hind_Siliguri','Noto_Serif_Bengali',sans-serif] text-base font-medium leading-relaxed text-white sm:text-lg">
+                    কলকাতার কতগুলো প্যান্ডেল ঘোরা হয়ে গিয়েছে, আর কোনগুলো এখনও বাকি, সবকিছুর হিসাব রাখো এক জায়গায়।
+                </p>
+                <p className="mt-2 max-w-2xl font-['Hind_Siliguri','Noto_Serif_Bengali',sans-serif] text-sm leading-[1.8] text-[#C5D0E6] sm:text-base sm:leading-[1.8]">
+                    দেখে নাও প্রতিটি পুজোমণ্ডপের নিকটতম মেট্রো স্টেশন, আর পুজো ঘুরে এসে যোগ করো নিজের তোলা ছবি। জমিয়ে রাখো
+                    তোমার পুজোর প্রতিটি স্মরণীয় মুহূর্ত! ✨
+                </p>
+
+                <ul className="mt-5 flex flex-wrap gap-2">
+                    {HEADER_CHIPS.map(([emoji, label]) => (
+                        <li
+                            key={label}
+                            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 font-['Hind_Siliguri',sans-serif] text-sm text-white ring-1 ring-inset ring-white/15"
+                        >
+                            <Emoji>{emoji}</Emoji>
+                            {label}
+                        </li>
+                    ))}
+                </ul>
             </header>
 
             {storageError && (
@@ -189,7 +236,7 @@ export default function Dashboard({
                             type="button"
                             onClick={onDismissError}
                             aria-label="Dismiss message"
-                            className="rounded p-0.5 hover:bg-[#F8D9D1] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E]"
+                            className="-m-1.5 flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-lg hover:bg-[#F8D9D1] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E]"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -198,15 +245,15 @@ export default function Dashboard({
             )}
 
             {!isLoading && stats.total === 0 ? (
-                <div className={`${ui.card} flex flex-col items-center px-6 py-16 text-center`}>
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FDEEEA] text-[#D9381E]">
-                        <Landmark className="h-8 w-8" strokeWidth={1.5} />
+                <div className={`${ui.card} flex flex-col items-center px-5 py-14 text-center sm:px-6 sm:py-16`}>
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF1E4] text-3xl">
+                        <Emoji>🏮</Emoji>
                     </span>
                     <h2 className="mt-5 font-serif text-2xl font-semibold text-[#2A2622]">Start your pandal list</h2>
                     <p className="mt-2 max-w-md text-sm leading-relaxed text-[#6B645C]">
                         Add the clubs you want to see this Pujo. Your dashboard will fill in as you add them and mark visits.
                     </p>
-                    <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+                    <div className="mt-6 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                         <button type="button" onClick={onAddNew} className={ui.primaryBtn}>
                             <Plus className="h-4 w-4" />
                             Add a puja club
@@ -222,17 +269,18 @@ export default function Dashboard({
             ) : (
                 <>
                     {/* Progress and quick actions */}
-                    <div className="grid gap-5 lg:grid-cols-3">
-                        <section className={`${ui.card} p-6 lg:col-span-2`} aria-labelledby="progress-title">
+                    <div className="grid gap-4 sm:gap-5 lg:grid-cols-3">
+                        <section className={`${ui.card} min-w-0 p-5 sm:p-6 lg:col-span-2`} aria-labelledby="progress-title">
                             <h2 id="progress-title" className="text-sm font-medium text-[#6B645C]">
+                                <Emoji>🎯 </Emoji>
                                 Overall visit progress
                             </h2>
-                            <div className="mt-2 flex items-baseline gap-3">
+                            <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                                 {isLoading ? (
-                                    <span className="block h-14 w-32 animate-pulse rounded bg-[#EFE9DB]" />
+                                    <span className="block h-14 w-32 animate-pulse rounded bg-[#E9E5DA] motion-reduce:animate-none" />
                                 ) : (
                                     <>
-                                        <span className="font-serif text-6xl font-semibold tabular-nums text-[#D9381E]">
+                                        <span className="font-serif text-5xl font-semibold tabular-nums text-[#16325C] sm:text-6xl">
                                             {stats.percent}%
                                         </span>
                                         <span className="text-[#4A443D]">
@@ -247,17 +295,17 @@ export default function Dashboard({
                                 aria-valuemin={0}
                                 aria-valuemax={100}
                                 aria-valuenow={stats.percent}
-                                className="mt-5 h-3 overflow-hidden rounded-full bg-[#EFE9DB]"
+                                className="mt-5 h-3 overflow-hidden rounded-full bg-[#E7ECF5]"
                             >
                                 <div
-                                    className="h-full rounded-full bg-gradient-to-r from-[#D9381E] to-[#B58B2E] transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                                    className="h-full rounded-full bg-[#F5822A] transition-[width] duration-700 ease-out motion-reduce:transition-none"
                                     style={{ width: `${stats.percent}%` }}
                                 />
                             </div>
                             <p className="mt-3 text-sm text-[#6B645C]">
                                 {stats.total === stats.visited && stats.total > 0
-                                    ? 'You have visited every pandal on your list.'
-                                    : `${stats.notVisited} still to go.`}
+                                    ? 'You have visited every pandal on your list. 🎉'
+                                    : `${stats.notVisited} still to go. 💪`}
                             </p>
                             {hasDemo && (
                                 <p className="mt-4 flex items-start gap-2 rounded-lg bg-[#F7EFD9] px-3 py-2 text-xs text-[#6F5516]">
@@ -267,8 +315,9 @@ export default function Dashboard({
                             )}
                         </section>
 
-                        <section className={`${ui.card} flex flex-col gap-3 p-6`} aria-labelledby="actions-title">
+                        <section className={`${ui.card} flex flex-col gap-3 p-5 sm:p-6`} aria-labelledby="actions-title">
                             <h2 id="actions-title" className="font-serif text-xl font-semibold text-[#2A2622]">
+                                <Emoji>⚡ </Emoji>
                                 Quick actions
                             </h2>
                             <button type="button" onClick={onAddNew} className={`${ui.primaryBtn} w-full justify-start`}>
@@ -286,18 +335,20 @@ export default function Dashboard({
                         </section>
                     </div>
 
-                    {/* Summary cards */}
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {/* Summary cards: two across on phones, four on large screens */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                         <StatCard
                             icon={Landmark}
+                            emoji="🏮"
                             label="Total puja clubs"
                             value={stats.total}
-                            tone="bg-[#F7EFD9] text-[#8A6A1C]"
+                            tone="bg-[#E7ECF5] text-[#16325C]"
                             loading={isLoading}
                             onClick={() => onNavigate('all')}
                         />
                         <StatCard
                             icon={CheckCircle2}
+                            emoji="✅"
                             label="Visited pandals"
                             value={stats.visited}
                             tone="bg-[#E4F1E8] text-[#255B3C]"
@@ -306,14 +357,16 @@ export default function Dashboard({
                         />
                         <StatCard
                             icon={Footprints}
+                            emoji="👣"
                             label="Not visited pandals"
                             value={stats.notVisited}
-                            tone="bg-[#ECEAE6] text-[#3F3A34]"
+                            tone="bg-[#FFF1E4] text-[#B8530A]"
                             loading={isLoading}
                             onClick={() => onNavigate('notVisited')}
                         />
                         <StatCard
                             icon={Heart}
+                            emoji="❤️"
                             label="Favourite pandals"
                             value={stats.favourites}
                             tone="bg-[#FDEEEA] text-[#D9381E]"
@@ -324,39 +377,36 @@ export default function Dashboard({
 
                     {/* Region breakdown */}
                     <section aria-labelledby="regions-title">
-                        <div className="mb-3 flex items-end justify-between gap-3">
+                        <div className="mb-3 flex items-center justify-between gap-3">
                             <h2 id="regions-title" className="font-serif text-xl font-semibold text-[#2A2622]">
+                                <Emoji>🧭 </Emoji>
                                 By region
                             </h2>
-                            <button
-                                type="button"
-                                onClick={() => onNavigate('regions')}
-                                className="rounded-lg px-2 py-1 text-sm font-semibold text-[#B82D16] transition-colors hover:bg-[#FDEEEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E]"
-                            >
+                            <button type="button" onClick={() => onNavigate('regions')} className={linkBtn}>
                                 Explore regions
                             </button>
                         </div>
-                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                             {stats.regions.map((item) => (
                                 <button
                                     key={item.region}
                                     type="button"
                                     onClick={() => onNavigate('regions')}
-                                    className={`${ui.card} p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(42,38,34,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B58B2E]`}
+                                    className={`${ui.card} min-w-0 touch-manipulation p-4 text-left transition-[transform,box-shadow] [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-[0_10px_30px_rgba(15,37,71,0.12)] sm:p-5 ${ring}`}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <span className={`h-2.5 w-2.5 rounded-full ${REGION_STYLES[item.region].bar}`} />
-                                        <span className="text-sm font-semibold text-[#2A2622]">{item.region}</span>
+                                        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${REGION_STYLES[item.region].bar}`} />
+                                        <span className="truncate text-sm font-semibold text-[#2A2622]">{item.region}</span>
                                     </div>
-                                    <p className="mt-3 font-serif text-3xl font-semibold tabular-nums text-[#2A2622]">
+                                    <p className="mt-3 font-serif text-2xl font-semibold tabular-nums text-[#16325C] sm:text-3xl">
                                         {isLoading ? '–' : item.total}
                                         <span className="ml-1.5 font-sans text-sm font-normal text-[#6B645C]">
                                             {item.total === 1 ? 'pandal' : 'pandals'}
                                         </span>
                                     </p>
-                                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#EFE9DB]">
+                                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E7ECF5]">
                                         <div
-                                            className={`h-full rounded-full transition-[width] duration-500 ${REGION_STYLES[item.region].bar}`}
+                                            className={`h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none ${REGION_STYLES[item.region].bar}`}
                                             style={{ width: `${item.percent}%` }}
                                         />
                                     </div>
@@ -369,20 +419,17 @@ export default function Dashboard({
                     </section>
 
                     {/* Recent and upcoming */}
-                    <div className="grid gap-5 lg:grid-cols-2">
+                    <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
                         <ListCard
                             title="Recently visited"
+                            emoji="🕑"
                             description="Your latest stops."
                             hasItems={stats.recent.length > 0}
                             emptyText="You have not marked any pandal as visited yet."
                             actionText="See what's next"
                             onEmptyAction={() => onNavigate('notVisited')}
                             footer={
-                                <button
-                                    type="button"
-                                    onClick={() => onNavigate('visited')}
-                                    className="mt-2 self-start rounded-lg px-2 py-1 text-sm font-semibold text-[#B82D16] hover:bg-[#FDEEEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E]"
-                                >
+                                <button type="button" onClick={() => onNavigate('visited')} className={`${linkBtn} mt-2 self-start`}>
                                     View all visited
                                 </button>
                             }
@@ -399,6 +446,7 @@ export default function Dashboard({
 
                         <ListCard
                             title="Up next on your list"
+                            emoji="🔜"
                             description="Favourites come first."
                             hasItems={stats.upcoming.length > 0}
                             emptyText={
@@ -408,11 +456,7 @@ export default function Dashboard({
                             onEmptyAction={onAddNew}
                             footer={
                                 stats.upcomingTotal > stats.upcoming.length && (
-                                    <button
-                                        type="button"
-                                        onClick={() => onNavigate('notVisited')}
-                                        className="mt-2 self-start rounded-lg px-2 py-1 text-sm font-semibold text-[#B82D16] hover:bg-[#FDEEEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9381E]"
-                                    >
+                                    <button type="button" onClick={() => onNavigate('notVisited')} className={`${linkBtn} mt-2 self-start`}>
                                         View all {stats.upcomingTotal} not visited
                                     </button>
                                 )
