@@ -4,8 +4,7 @@
  * Overview of the whole collection. Every number is calculated from the `pandals`
  * prop on each render, so it updates the moment a record is added, edited or deleted.
  *
- * Needs the Noto Serif Bengali and Hind Siliguri fonts (the link is in index.html).
- * Emojis are decorative, so they sit in <Emoji> and are hidden from screen readers.
+ * Needs the Noto Serif Bengali font for the heading (see the note in Sidebar.jsx).
  */
 import { useMemo } from 'react';
 import {
@@ -28,25 +27,9 @@ import {
 } from './Pandalform.jsx';
 
 const ring = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16325C]';
-const linkBtn =
-    'rounded-lg px-2.5 py-1.5 text-sm font-semibold text-[#B8530A] transition-colors hover:bg-[#FFF1E4] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A]';
+const linkBtn = `rounded-lg px-2.5 py-1.5 text-sm font-semibold text-[#B8530A] transition-colors hover:bg-[#FFF1E4] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A]`;
 
-/** Decorative emoji, ignored by screen readers. */
-function Emoji({ children, className = '' }) {
-    return (
-        <span aria-hidden="true" className={className}>
-            {children}
-        </span>
-    );
-}
-
-const HEADER_CHIPS = [
-    ['👣', 'ঘোরার হিসাব'],
-    ['🚇', 'কাছের মেট্রো স্টেশন'],
-    ['📸', 'নিজের তোলা ছবি'],
-];
-
-function StatCard({ icon: Icon, label, emoji, value, tone, onClick, loading }) {
+function StatCard({ icon: Icon, label, value, tone, onClick, loading }) {
     return (
         <button
             type="button"
@@ -57,10 +40,7 @@ function StatCard({ icon: Icon, label, emoji, value, tone, onClick, loading }) {
                 <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
             </span>
             <span className="min-w-0">
-                <span className="block text-xs leading-tight text-[#6B645C] sm:text-sm">
-                    <Emoji>{emoji} </Emoji>
-                    {label}
-                </span>
+                <span className="block text-xs leading-tight text-[#6B645C] sm:text-sm">{label}</span>
                 {loading ? (
                     <span className="mt-1 block h-8 w-12 animate-pulse rounded bg-[#E9E5DA] motion-reduce:animate-none" />
                 ) : (
@@ -107,13 +87,10 @@ function MiniRow({ pandal, meta, actionLabel, onAction, onSelect }) {
     );
 }
 
-function ListCard({ title, emoji, description, emptyText, actionText, onEmptyAction, children, hasItems, footer }) {
+function ListCard({ title, description, emptyText, actionText, onEmptyAction, children, hasItems, footer }) {
     return (
         <section className={`${ui.card} flex min-w-0 flex-col p-4 sm:p-5`}>
-            <h2 className="font-serif text-xl font-semibold text-[#2A2622]">
-                <Emoji>{emoji} </Emoji>
-                {title}
-            </h2>
+            <h2 className="font-serif text-xl font-semibold text-[#2A2622]">{title}</h2>
             <p className="mt-0.5 text-sm text-[#6B645C]">{description}</p>
             {hasItems ? (
                 <ul className="mt-2 divide-y divide-[#F0EADB]">{children}</ul>
@@ -194,35 +171,17 @@ export default function Dashboard({
 
     return (
         <div className="space-y-6 sm:space-y-8">
-            {/* Banner */}
-            <header className="relative overflow-hidden rounded-2xl bg-[#16325C] px-5 py-6 text-white sm:px-8 sm:py-8">
-                <span className="absolute inset-y-0 left-0 w-1.5 bg-[#F5822A]" aria-hidden="true" />
+         
+<header>
+  <h1 className="font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-2xl font-semibold leading-snug text-[#16325C] sm:text-3xl lg:text-4xl">
+    তোমার পুজো পরিক্রমা
+  </h1>
 
-                <h1 className="font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-2xl font-semibold leading-snug sm:text-3xl lg:text-4xl">
-                    <Emoji>🪔 </Emoji>
-                    তোমার পুজো পরিক্রমা
-                </h1>
+  <h2 className="mt-1.5 max-w-2xl font-['Noto_Serif_Bengali','Hind_Siliguri',sans-serif] text-sm leading-relaxed text-[#6B645C] sm:text-base">
+    কলকাতার কতগুলো প্যান্ডেল ঘোরা হয়ে গিয়েছে, আর কোনগুলো এখনও বাকি—সবকিছুর হিসাব রাখো এক জায়গায়। দেখে নাও প্রতিটি পুজোমণ্ডপের নিকটতম মেট্রো স্টেশন, আর পুজো ঘুরে এসে যোগ করো নিজের তোলা ছবি। জমিয়ে রাখো তোমার পুজোর প্রতিটি স্মরণীয় মুহূর্ত!
+  </h2>
+</header>
 
-                <p className="mt-2 max-w-2xl font-['Hind_Siliguri','Noto_Serif_Bengali',sans-serif] text-base font-medium leading-relaxed text-white sm:text-lg">
-                    কলকাতার কতগুলো প্যান্ডেল ঘোরা হয়ে গিয়েছে, আর কোনগুলো এখনও বাকি, সবকিছুর হিসাব রাখো এক জায়গায়।
-                </p>
-                <p className="mt-2 max-w-2xl font-['Hind_Siliguri','Noto_Serif_Bengali',sans-serif] text-sm leading-[1.8] text-[#C5D0E6] sm:text-base sm:leading-[1.8]">
-                    দেখে নাও প্রতিটি পুজোমণ্ডপের নিকটতম মেট্রো স্টেশন, আর পুজো ঘুরে এসে যোগ করো নিজের তোলা ছবি। জমিয়ে রাখো
-                    তোমার পুজোর প্রতিটি স্মরণীয় মুহূর্ত! ✨
-                </p>
-
-                <ul className="mt-5 flex flex-wrap gap-2">
-                    {HEADER_CHIPS.map(([emoji, label]) => (
-                        <li
-                            key={label}
-                            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 font-['Hind_Siliguri',sans-serif] text-sm text-white ring-1 ring-inset ring-white/15"
-                        >
-                            <Emoji>{emoji}</Emoji>
-                            {label}
-                        </li>
-                    ))}
-                </ul>
-            </header>
 
             {storageError && (
                 <div
@@ -246,8 +205,8 @@ export default function Dashboard({
 
             {!isLoading && stats.total === 0 ? (
                 <div className={`${ui.card} flex flex-col items-center px-5 py-14 text-center sm:px-6 sm:py-16`}>
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF1E4] text-3xl">
-                        <Emoji>🏮</Emoji>
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF1E4] text-[#F5822A]">
+                        <Landmark className="h-8 w-8" strokeWidth={1.5} />
                     </span>
                     <h2 className="mt-5 font-serif text-2xl font-semibold text-[#2A2622]">Start your pandal list</h2>
                     <p className="mt-2 max-w-md text-sm leading-relaxed text-[#6B645C]">
@@ -272,7 +231,6 @@ export default function Dashboard({
                     <div className="grid gap-4 sm:gap-5 lg:grid-cols-3">
                         <section className={`${ui.card} min-w-0 p-5 sm:p-6 lg:col-span-2`} aria-labelledby="progress-title">
                             <h2 id="progress-title" className="text-sm font-medium text-[#6B645C]">
-                                <Emoji>🎯 </Emoji>
                                 Overall visit progress
                             </h2>
                             <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -304,8 +262,8 @@ export default function Dashboard({
                             </div>
                             <p className="mt-3 text-sm text-[#6B645C]">
                                 {stats.total === stats.visited && stats.total > 0
-                                    ? 'You have visited every pandal on your list. 🎉'
-                                    : `${stats.notVisited} still to go. 💪`}
+                                    ? 'You have visited every pandal on your list.'
+                                    : `${stats.notVisited} still to go.`}
                             </p>
                             {hasDemo && (
                                 <p className="mt-4 flex items-start gap-2 rounded-lg bg-[#F7EFD9] px-3 py-2 text-xs text-[#6F5516]">
@@ -317,7 +275,6 @@ export default function Dashboard({
 
                         <section className={`${ui.card} flex flex-col gap-3 p-5 sm:p-6`} aria-labelledby="actions-title">
                             <h2 id="actions-title" className="font-serif text-xl font-semibold text-[#2A2622]">
-                                <Emoji>⚡ </Emoji>
                                 Quick actions
                             </h2>
                             <button type="button" onClick={onAddNew} className={`${ui.primaryBtn} w-full justify-start`}>
@@ -339,7 +296,6 @@ export default function Dashboard({
                     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                         <StatCard
                             icon={Landmark}
-                            emoji="🏮"
                             label="Total puja clubs"
                             value={stats.total}
                             tone="bg-[#E7ECF5] text-[#16325C]"
@@ -348,7 +304,6 @@ export default function Dashboard({
                         />
                         <StatCard
                             icon={CheckCircle2}
-                            emoji="✅"
                             label="Visited pandals"
                             value={stats.visited}
                             tone="bg-[#E4F1E8] text-[#255B3C]"
@@ -357,7 +312,6 @@ export default function Dashboard({
                         />
                         <StatCard
                             icon={Footprints}
-                            emoji="👣"
                             label="Not visited pandals"
                             value={stats.notVisited}
                             tone="bg-[#FFF1E4] text-[#B8530A]"
@@ -366,7 +320,6 @@ export default function Dashboard({
                         />
                         <StatCard
                             icon={Heart}
-                            emoji="❤️"
                             label="Favourite pandals"
                             value={stats.favourites}
                             tone="bg-[#FDEEEA] text-[#D9381E]"
@@ -379,7 +332,6 @@ export default function Dashboard({
                     <section aria-labelledby="regions-title">
                         <div className="mb-3 flex items-center justify-between gap-3">
                             <h2 id="regions-title" className="font-serif text-xl font-semibold text-[#2A2622]">
-                                <Emoji>🧭 </Emoji>
                                 By region
                             </h2>
                             <button type="button" onClick={() => onNavigate('regions')} className={linkBtn}>
@@ -422,7 +374,6 @@ export default function Dashboard({
                     <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
                         <ListCard
                             title="Recently visited"
-                            emoji="🕑"
                             description="Your latest stops."
                             hasItems={stats.recent.length > 0}
                             emptyText="You have not marked any pandal as visited yet."
@@ -446,7 +397,6 @@ export default function Dashboard({
 
                         <ListCard
                             title="Up next on your list"
-                            emoji="🔜"
                             description="Favourites come first."
                             hasItems={stats.upcoming.length > 0}
                             emptyText={
