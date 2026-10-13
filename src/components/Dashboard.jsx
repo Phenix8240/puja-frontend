@@ -4,11 +4,13 @@
  * Overview of the whole collection. Every number is calculated from the `pandals`
  * prop on each render, so it updates the moment a record is added, edited or deleted.
  *
- * Needs the Noto Serif Bengali font for the heading (see the note in Sidebar.jsx).
+ * Needs the Noto Serif Bengali font for the heading (see the note in Navbar.jsx).
+ * Hero background: src/assets/drugamaa.jpg (imported below, so Vite bundles it).
  */
 import { useMemo } from 'react';
 import {
     AlertTriangle,
+    Camera,
     CheckCircle2,
     Compass,
     Footprints,
@@ -16,6 +18,7 @@ import {
     Landmark,
     Plus,
     Sparkles,
+    Train,
     X,
 } from 'lucide-react';
 import {
@@ -25,6 +28,7 @@ import {
     formatDate,
     ui,
 } from './Pandalform.jsx';
+import heroImage from '../assets/drugamaa.jpg';
 
 const ring = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16325C]';
 const linkBtn = `rounded-lg px-2.5 py-1.5 text-sm font-semibold text-[#B8530A] transition-colors hover:bg-[#FFF1E4] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5822A]`;
@@ -171,17 +175,62 @@ export default function Dashboard({
 
     return (
         <div className="space-y-6 sm:space-y-8">
-         
-<header>
-  <h1 className="font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-2xl font-semibold leading-snug text-[#16325C] sm:text-3xl lg:text-4xl">
-    তোমার পুজো পরিক্রমা
-  </h1>
+            <header className="relative isolate overflow-hidden rounded-3xl bg-[#0F2547] px-5 py-8 text-white shadow-[0_12px_36px_rgba(15,37,71,0.25)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+                {/* Blurred Durga Maa photo (src/assets/drugamaa.jpg) */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 scale-110 bg-cover bg-no-repeat opacity-90 blur-[3px] [background-position:80%_25%]"
+                    style={{ backgroundImage: `url(${heroImage})` }}
+                />
+                {/* Fade so the text stays readable */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-[#0F2547] via-[#0F2547]/80 to-[#0F2547]/10 max-md:from-[#0F2547]/90 max-md:via-[#0F2547]/75 max-md:to-[#0F2547]/55"
+                />
+                <div className="pointer-events-none absolute -bottom-24 -left-10 -z-10 h-56 w-56 rounded-full bg-[#F5822A]/20 blur-3xl" aria-hidden="true" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-transparent via-[#F5822A] to-transparent" aria-hidden="true" />
 
-  <h2 className="mt-1.5 max-w-2xl font-['Noto_Serif_Bengali','Hind_Siliguri',sans-serif] text-sm leading-relaxed text-[#6B645C] sm:text-base">
-    কলকাতার কতগুলো প্যান্ডেল ঘোরা হয়ে গিয়েছে, আর কোনগুলো এখনও বাকি—সবকিছুর হিসাব রাখো এক জায়গায়। দেখে নাও প্রতিটি পুজোমণ্ডপের নিকটতম মেট্রো স্টেশন, আর পুজো ঘুরে এসে যোগ করো নিজের তোলা ছবি। জমিয়ে রাখো তোমার পুজোর প্রতিটি স্মরণীয় মুহূর্ত!
-  </h2>
-</header>
+                <div className="relative min-w-0 max-w-2xl">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-xs font-medium text-[#FFD2A8] ring-1 ring-white/20 backdrop-blur-sm sm:text-sm">
+                        <Sparkles className="h-3.5 w-3.5 text-[#F5822A]" />
+                        শারদীয়া উৎসব
+                    </span>
 
+                    <h1 className="mt-4 font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-3xl font-semibold leading-[1.4] drop-shadow-sm sm:text-4xl lg:text-5xl lg:leading-[1.35]">
+                        তোমার <span className="text-[#FFA24D]">পুজো</span> পরিক্রমা
+                    </h1>
+
+                    <div className="mt-3 flex items-center gap-2" aria-hidden="true">
+                        <span className="h-1 w-12 rounded-full bg-[#F5822A]" />
+                        <span className="h-2 w-2 rotate-45 bg-[#F5822A]" />
+                        <span className="h-1 w-6 rounded-full bg-white/25" />
+                    </div>
+
+                    <p className="mt-4 max-w-xl font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-sm leading-[1.9] text-[#E3EAF7] sm:text-base">
+                        কলকাতার কতগুলো প্যান্ডেল ঘোরা হয়ে গিয়েছে, আর কোনগুলো এখনও বাকি—সবকিছুর হিসাব রাখো এক জায়গায়।
+                    </p>
+
+                    <ul className="mt-4 flex flex-wrap gap-2 font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-xs sm:text-sm">
+                        {[
+                            [CheckCircle2, 'ঘোরা ও বাকি প্যান্ডেলের হিসাব'],
+                            [Train, 'নিকটতম মেট্রো স্টেশন'],
+                            [Camera, 'নিজের তোলা ছবি যোগ করো'],
+                        ].map(([Icon, text]) => (
+                            <li
+                                key={text}
+                                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 leading-relaxed text-white ring-1 ring-white/20 backdrop-blur-sm"
+                            >
+                                <Icon className="h-4 w-4 shrink-0 text-[#F5822A]" strokeWidth={1.8} />
+                                {text}
+                            </li>
+                        ))}
+                    </ul>
+
+                    <p className="mt-5 font-['Noto_Serif_Bengali','Hind_Siliguri',serif] text-sm font-medium leading-relaxed text-[#FFB26B] sm:text-base">
+                        জমিয়ে রাখো তোমার পুজোর প্রতিটি স্মরণীয় মুহূর্ত!
+                    </p>
+                </div>
+            </header>
 
             {storageError && (
                 <div
