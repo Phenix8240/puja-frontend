@@ -35,7 +35,7 @@ import {
 /* 1. Constants and design tokens                                             */
 /* ========================================================================== */
 
-export const REGIONS = ['North Kolkata', 'South Kolkata', 'East Kolkata', 'West Kolkata', "Central Kolkata", "Oustisde Kolkata"];
+export const REGIONS = ['North Kolkata', 'South Kolkata', 'East Kolkata', 'West Kolkata', "Central Kolkata", "Outside Kolkata"];
 
 /*
  * Palette (from the logo)
@@ -58,14 +58,6 @@ export const REGION_STYLES = {
   'West Kolkata': {
     badge: 'bg-[#F7EFD9] text-[#8A6A1C] ring-[#E8D6A5]',
     bar: 'bg-[#B58B2E]',
-  },
-  'Central Kolkata': { 
-    badge: 'bg-[#F0E7F5] text-[#5A2D6C] ring-[#D3BEE1]',
-    bar: 'bg-[#7A3D9A]',
-  },
-  'Outside Kolkata': {
-    badge: 'bg-[#E8F0F7] text-[#1A3D5C] ring-[#B9D0E6]',
-    bar: 'bg-[#1A3D5C]',
   },
 };
 
