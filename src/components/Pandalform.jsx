@@ -1,15 +1,18 @@
 /**
- * Pandalform.jsx
+ * PandalForm.jsx
  *
  * Besides the add/edit drawer (default export), this file is the single home for
  * everything the other components share, so business logic is never duplicated:
  *
  *   - Data model:      REGIONS, createPandal, normalizePandal, createSamplePandals
- *   - Data layer:      usePandals() hook (localStorage today, swap for an API later)
+ *   - Data layer:      usePandals() hook (localStorage, or the API when VITE_API_URL is set)
  *   - Helpers:         todayISO, formatDate, getDirectionsUrl, getPlaceUrl, isSafeMapsUrl
  *   - Image handling:  validateImageFile, readImageAsDataUrl
  *   - UI primitives:   ui (class tokens), ConfirmDialog, ImageWithFallback, RegionBadge,
  *                      StatusBadge
+ *
+ * Adding a region: add its name to REGIONS and its colours to REGION_STYLE_MAP. If you forget
+ * the colours, REGION_STYLES falls back to a neutral style instead of crashing the app.
  *
  * Mobile notes
  *   - Every text field uses text-base (16px) below `sm`. iOS Safari zooms the page when a
@@ -35,14 +38,21 @@ import {
 /* 1. Constants and design tokens                                             */
 /* ========================================================================== */
 
-export const REGIONS = ['North Kolkata', 'South Kolkata', 'East Kolkata', 'West Kolkata'];
+export const REGIONS = [
+  'North Kolkata',
+  'South Kolkata',
+  'Central Kolkata',
+  'West Kolkata',
+  'East Kolkata',
+  'Outside Kolkata',
+];
 
 /*
  * Palette (from the logo)
  *   navy #16325C   deep navy #0F2547   orange #F5822A   dark orange (text) #B8530A
  *   ink #2A2622    muted #6B645C       line #E6E0D2      cream #FAF6EE
  */
-export const REGION_STYLES = {
+const REGION_STYLE_MAP = {
   'North Kolkata': {
     badge: 'bg-[#FFF1E4] text-[#A84A07] ring-[#F8D2AE]',
     bar: 'bg-[#F5822A]',
@@ -51,7 +61,7 @@ export const REGION_STYLES = {
     badge: 'bg-[#E7ECF5] text-[#16325C] ring-[#C3CFE6]',
     bar: 'bg-[#16325C]',
   },
-  'East Kolkata': {
+  'Central Kolkata': {
     badge: 'bg-[#E3F3EF] text-[#1F6355] ring-[#BADFD6]',
     bar: 'bg-[#2E8B7A]',
   },
@@ -59,7 +69,30 @@ export const REGION_STYLES = {
     badge: 'bg-[#F7EFD9] text-[#8A6A1C] ring-[#E8D6A5]',
     bar: 'bg-[#B58B2E]',
   },
+  'East Kolkata': {
+    badge: 'bg-[#F1E9F5] text-[#5B2E75] ring-[#DAC8E6]',
+    bar: 'bg-[#7A4A96]',
+  },
+  'Outside Kolkata': {
+    badge: 'bg-[#ECEAE6] text-[#3F3A34] ring-[#D5D0C7]',
+    bar: 'bg-[#8A8276]',
+  },
 };
+
+const FALLBACK_REGION_STYLE = {
+  badge: 'bg-[#ECEAE6] text-[#3F3A34] ring-[#D5D0C7]',
+  bar: 'bg-[#8A8276]',
+};
+
+/**
+ * Looking up any region name always returns a style object, so
+ * `REGION_STYLES[region].bar` can never throw, even for a region added later.
+ */
+export const REGION_STYLES = new Proxy(REGION_STYLE_MAP, {
+  get: (target, key) => target[key] ?? FALLBACK_REGION_STYLE,
+});
+
+export const regionBar = (region) => REGION_STYLES[region].bar;
 
 export const STORAGE_KEY = 'pujotrack.pandals.v1';
 
@@ -240,7 +273,7 @@ export function createSamplePandals() {
 }
 
 /* ========================================================================== */
-/* 4. Data layer: localStorage today, API later                               */
+/* 4. Data layer: localStorage, or the API when VITE_API_URL is set           */
 /* ========================================================================== */
 
 export function loadPandals() {
@@ -289,11 +322,7 @@ export function savePandals(pandals) {
   }
 }
 
-/**
- * The single source of truth for pandal records.
- * To move to a backend, replace the bodies of these functions with API calls;
- * the components only rely on this return shape.
- */
+/** Browser-only version. The single source of truth for pandal records. */
 function useLocalPandals() {
   const [pandals, setPandals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -443,14 +472,11 @@ function useApiPandals() {
     [refresh],
   );
 
-  const addPandal = useCallback(
-    async (data) => {
-      const saved = await api('/pandals', { method: 'POST', body: JSON.stringify(data) }); // throws into the form
-      setPandals((current) => [normalizePandal(saved), ...current]);
-      return saved;
-    },
-    [],
-  );
+  const addPandal = useCallback(async (data) => {
+    const saved = await api('/pandals', { method: 'POST', body: JSON.stringify(data) }); // throws into the form
+    setPandals((current) => [normalizePandal(saved), ...current]);
+    return saved;
+  }, []);
 
   const updatePandal = useCallback(async (id, data) => {
     const saved = await api(`/pandals/${id}`, { method: 'PUT', body: JSON.stringify(data) });
@@ -721,10 +747,9 @@ export function ImageWithFallback({ src, alt, kind = 'pandal', className = '', c
 }
 
 export function RegionBadge({ region, className = '' }) {
-  const style = REGION_STYLES[region]?.badge || 'bg-[#ECEAE6] text-[#3F3A34] ring-[#D5D0C7]';
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${style} ${className}`}
+      className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${REGION_STYLES[region].badge} ${className}`}
     >
       {region}
     </span>
@@ -977,7 +1002,7 @@ export function validatePandalValues(values, existing = [], editingId = null) {
   else if (name.length > 120) errors.clubName = 'Keep the name under 120 characters.';
 
   if (!values.locality.trim()) errors.locality = 'Enter the locality, for example Shyambazar.';
-  if (!REGIONS.includes(values.region)) errors.region = 'Choose North, South, East or West Kolkata.';
+  if (!REGIONS.includes(values.region)) errors.region = 'Choose a region.';
   if (!values.address.trim()) errors.address = 'Enter the full address so directions work.';
 
   const latText = values.latitude.trim();
@@ -1267,7 +1292,7 @@ function FormPanel({ pandal, existingPandals, onSave, onClose }) {
 
                 <div>
                   <span id="region-label" className="mb-1.5 block text-sm font-medium text-[#2A2622]">
-                    Kolkata region
+                    Region
                     <span className="text-[#D9381E]" aria-hidden="true">
                       {' '}
                       *
