@@ -35,7 +35,7 @@ import {
 /* 1. Constants and design tokens                                             */
 /* ========================================================================== */
 
-export const REGIONS = ['North Kolkata', 'South Kolkata', 'East Kolkata', 'West Kolkata', "Central Kolkata", "Outside Kolkata"];
+export const REGIONS = ['North Kolkata', 'South Kolkata', 'East Kolkata', 'West Kolkata'];
 
 /*
  * Palette (from the logo)
